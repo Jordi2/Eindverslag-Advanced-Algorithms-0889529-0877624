@@ -68,7 +68,7 @@ Er moet een model worden ontwikkeld voor een sluis. Dit model moet abstract geno
 
 \subsection{Vereisten}
 
-De sluis moet in staat zijn om het waterniveau te reguleren. De sluis is een schutsluis wat betekent dat deze in staat is om boten van de een naar de andere kant, door de schutkolk heen, te leiden. De deuren moeten niet kunnen sluiten op boten.
+De sluis moet in staat zijn om het waterniveau te reguleren. De sluis is een schutsluis wat betekent dat deze in staat is om boten van de een naar de andere kant, door de schutkolk heen, te leiden. De deuren moeten niet kunnen sluiten op boten. De sluisdeuren moeten automatisch weten waneer zij open of dicht moeten zijn.
 
 
 \subsection{Requirements / Functionaliteiten-lijst}
@@ -90,14 +90,24 @@ Door middel van een signaal weet de sluis welke sluisdeuren deze moet open. \new
 
 \textbf{ID: F6} \newline
 \textbf{Functionaliteit: Sluisdeuren kunnen niet sluiten als er een obstakel in de weg zit} \newline
-Obstakel kan een boot zijn. Voor de veiligheid van deze boten moeten de sluisdeuren niet kunnen sluiten totdat obstakels zijn verwijdered.  \newline
+Obstakel kan een boot zijn. Voor de veiligheid van deze boten moeten de sluisdeuren niet kunnen sluiten totdat obstakels zijn verwijderd.  \newline
 
-//check if doors are never both open at the same time
+\textbf{ID: F7} \newline
+\textbf{Functionaliteit: Beide sluisdeuren kunnen niet tegelijk open zijn.} \newline
+Een situatie waarin dit gebeurd zou bij goed functioneren niet optreden. Desondanks zal deze wel worden gemoduleerd. \newline
+
 
 \section{Realisatie/Proof of Concept}
 
 \subsection{Technische besluiten}
 //aantal sluisen, etc.
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width=\textwidth]{images/sluis_model.png}
+    \caption{Model sluis dat twee sluisdeuren bevat en waterniveau bevat.}
+	%\label{fig:figure2}
+\end{figure}
+
 \subsection{Ontwerpen}
 //screen capture Uppaal model \newline
 
