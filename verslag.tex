@@ -1,7 +1,7 @@
 \documentclass{article}
 \setcounter{secnumdepth}{0} % removes numeration of (sub)sections
 \usepackage{graphicx} 
-\usepackage[dutch]{babel}
+\usepackage[dutch,english]{babel}
 \usepackage{graphicx}
 \usepackage[table,xcdraw]{xcolor}
 \usepackage[normalem]{ulem}
@@ -68,7 +68,7 @@ Er moet een model worden ontwikkeld voor een sluis. Dit model moet abstract geno
 
 \subsection{Vereisten}
 
-De sluis moet in staat zijn om het waterniveau te reguleren. De sluis is een schutsluis wat betekent dat deze in staat is om boten van de een naar de andere kant, door de schutkolk heen, te leiden. De deuren moeten niet kunnen sluiten op boten. De sluisdeuren moeten automatisch weten waneer zij open of dicht moeten zijn.
+De sluis moet in staat zijn om het waterniveau te reguleren. De sluis is een schutsluis wat betekent dat deze in staat is om boten van de een naar de andere kant, door de schutkolk heen, te leiden. De deuren moeten niet kunnen sluiten op boten. De sluisdeuren moeten automatisch weten wanneer zij open of dicht moeten zijn.
 
 
 \subsection{Requirements / Functionaliteiten-lijst}
@@ -78,7 +78,7 @@ De sluisdeur(en) moeten in staat zijn om open en dicht te gaan in een realistisc
 
 \textbf{ID: F2} \newline
 \textbf{Functionaliteit: Waterniveau detecteren} \newline
-Het water niveau aan beide kanten van de sluis en binnen de sluiskolk moet kunnen worden gedecteerd. \newline
+Het water niveau aan beide kanten van de sluis en binnen de sluiskolk moet kunnen worden gedetecteerd. \newline
 
 \textbf{ID: F3} \newline
 \textbf{Functionaliteit: Waterniveau reguleren} \newline
@@ -106,7 +106,10 @@ Een situatie waarin dit gebeurd zou bij goed functioneren niet optreden. Desonda
 	\includegraphics[width=\textwidth]{images/sluis_model.png}
     \caption{Model sluis dat twee sluisdeuren bevat en waterniveau bevat.}
 	%\label{fig:figure2}
-\end{figure}
+\end{figure} \newline
+\textbf{Waterpeil}\newline
+Om het waterpeil te meten is er gekozen
+
 
 \subsection{Ontwerpen}
 //screen capture Uppaal model \newline
