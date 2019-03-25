@@ -116,14 +116,15 @@ void emptyLockChamber(){
     if(waterLevelRight &lt; waterLevelLockChamber){
         waterLevelLockChamber = waterLevelLockChamber-1;
     }
+}
 
 bool waterLevelCheckLeftSame(){
     if(waterLevelLeft == waterLevelLockChamber){
         return true;//keep level
     } else if(waterLevelLeft &lt; waterLevelLockChamber){
-        return emptyLockChamber;
+        emptyLockChamber();
     } else if(waterLevelLeft &gt; waterLevelLockChamber){
-        return fillLockChamber;
+        fillLockChamber();
     }
     return false;
 }
@@ -131,14 +132,12 @@ bool waterLevelCheckRightSame(){
     if(waterLevelRight == waterLevelLockChamber){
         return true;//keep level
     } else if(waterLevelRight &lt; waterLevelLockChamber){
-        return emptyLockChamber;
+        emptyLockChamber();
     } else if(waterLevelRight &gt; waterLevelLockChamber){
-        return fillLockChamber;
+        fillLockChamber();
     }
     return false;
 }
-
-
 
 bool passRequestPriority(){ //decides which que is going trough the sluice
     if(boatsInQueueLeft==1&amp;&amp;boatsInQueueRight==1){//Give priority to left
@@ -153,102 +152,100 @@ bool passRequestPriority(){ //decides which que is going trough the sluice
 
 
 </declaration>
-		<location id="id0" x="688" y="297">
-		</location>
-		<location id="id1" x="578" y="-238">
+		<location id="id0" x="578" y="-238">
 			<name x="484" y="-289">sensorSluiceOutgoingBoatClear</name>
 		</location>
-		<location id="id2" x="748" y="-238">
+		<location id="id1" x="748" y="-238">
 			<name x="654" y="-272">lightsInsideOutgoingRed</name>
 		</location>
-		<location id="id3" x="884" y="-238">
+		<location id="id2" x="884" y="-238">
 			<name x="807" y="-289">lightsInsideOutgoingGreen</name>
 		</location>
-		<location id="id4" x="1054" y="-238">
+		<location id="id3" x="1054" y="-238">
 			<name x="986" y="-272">sluiceOutgoingOpen</name>
 		</location>
-		<location id="id5" x="1224" y="-238">
+		<location id="id4" x="1224" y="-238">
 			<name x="1139" y="-272">sluiceOutgoingOpening</name>
 		</location>
-		<location id="id6" x="1394" y="-119">
+		<location id="id5" x="1394" y="-119">
 			<name x="1326" y="-153">sluiceIncomingClosed</name>
 		</location>
-		<location id="id7" x="1394" y="0">
+		<location id="id6" x="1394" y="0">
 			<name x="1326" y="-42">sluiceIncomingClosing</name>
 		</location>
-		<location id="id8" x="1224" y="0">
+		<location id="id7" x="1224" y="0">
 			<name x="1096" y="-34">sensorSluiceIncomingBoatClear</name>
 		</location>
-		<location id="id9" x="748" y="0">
+		<location id="id8" x="748" y="0">
 			<name x="688" y="17">sluiceIncomingOpen</name>
 		</location>
-		<location id="id10" x="374" y="-238">
+		<location id="id9" x="374" y="-238">
 			<name x="364" y="-272">sluiceOutgoingClosing</name>
 		</location>
-		<location id="id11" x="170" y="-238">
+		<location id="id10" x="170" y="-238">
 			<name x="93" y="-272">sluiceOutgoingClosed</name>
 		</location>
-		<location id="id12" x="340" y="-110">
+		<location id="id11" x="340" y="-110">
 			<name x="306" y="-144">pumpFill</name>
 		</location>
-		<location id="id13" x="340" y="110">
+		<location id="id12" x="340" y="110">
 			<name x="297" y="127">pumpEmpty</name>
 		</location>
-		<location id="id14" x="340" y="0">
+		<location id="id13" x="340" y="0">
 			<name x="280" y="-34">waterLevelCheck</name>
 		</location>
-		<location id="id15" x="1054" y="0">
+		<location id="id14" x="1054" y="0">
 			<name x="969" y="-51">lightsIncomingOutsideRed</name>
 		</location>
-		<location id="id16" x="0" y="170">
+		<location id="id15" x="0" y="170">
 			<name x="-42" y="136">sluiceAllClosed</name>
 		</location>
-		<location id="id17" x="-136" y="170">
+		<location id="id16" x="-136" y="170">
 			<name x="-170" y="136">lightsAllRed</name>
 		</location>
-		<location id="id18" x="-272" y="170">
+		<location id="id17" x="-272" y="170">
 			<name x="-297" y="136">startUp</name>
 		</location>
-		<location id="id19" x="884" y="0">
+		<location id="id18" x="884" y="0">
 			<name x="816" y="-34">lightsIncomingOutsideGreen</name>
 		</location>
-		<location id="id20" x="578" y="0">
+		<location id="id19" x="578" y="0">
 			<name x="510" y="-25">sluiceIncomingOpening</name>
 		</location>
-		<location id="id21" x="170" y="0">
+		<location id="id20" x="170" y="0">
 			<name x="93" y="-34">checkPassRequest</name>
 		</location>
-		<location id="id22" x="0" y="0">
+		<location id="id21" x="0" y="0">
 			<name x="-10" y="-34">idle</name>
 		</location>
-		<location id="id23" x="1394" y="-348">
+		<location id="id22" x="1394" y="-348">
 			<name x="1360" y="-382">pumpFill2</name>
 		</location>
-		<location id="id24" x="1394" y="-238">
+		<location id="id23" x="1394" y="-238">
 			<name x="1334" y="-272">waterLevelCheck2</name>
 		</location>
-		<location id="id25" x="1530" y="-238">
+		<location id="id24" x="1530" y="-238">
 			<name x="1487" y="-221">pumpEmpty2</name>
 		</location>
-		<init ref="id18"/>
+		<init ref="id17"/>
 		<transition>
-			<source ref="id14"/>
-			<target ref="id20"/>
+			<source ref="id13"/>
+			<target ref="id19"/>
 			<label kind="comments" x="391" y="-17">Keep water level</label>
 		</transition>
 		<transition>
-			<source ref="id13"/>
-			<target ref="id20"/>
+			<source ref="id12"/>
+			<target ref="id19"/>
 			<nail x="450" y="110"/>
 		</transition>
 		<transition>
-			<source ref="id12"/>
-			<target ref="id20"/>
+			<source ref="id11"/>
+			<target ref="id19"/>
 			<nail x="450" y="-110"/>
 		</transition>
 		<transition>
-			<source ref="id11"/>
-			<target ref="id22"/>
+			<source ref="id10"/>
+			<target ref="id21"/>
 			<label kind="comments" x="8" y="-204">Go to idle 
 when requests
 are done</label>
@@ -256,30 +253,30 @@ are done</label>
 			<nail x="0" y="-34"/>
 		</transition>
 		<transition>
-			<source ref="id11"/>
-			<target ref="id21"/>
+			<source ref="id10"/>
+			<target ref="id20"/>
 			<label kind="comments" x="178" y="-170">If requests 
 are still open 
 for current 
 time frame</label>
 		</transition>
 		<transition>
-			<source ref="id10"/>
-			<target ref="id11"/>
+			<source ref="id9"/>
+			<target ref="id10"/>
 			<label kind="comments" x="212" y="-229">Return signal 
 after it is closed</label>
 		</transition>
 		<transition>
-			<source ref="id1"/>
-			<target ref="id10"/>
+			<source ref="id0"/>
+			<target ref="id9"/>
 			<label kind="comments" x="442" y="-229">Ater confirmed 
 clear send signal
 to close the 
 outgoing door</label>
 		</transition>
 		<transition>
-			<source ref="id2"/>
-			<target ref="id1"/>
+			<source ref="id1"/>
+			<target ref="id0"/>
 			<label kind="comments" x="578" y="-221">After x amount of 
 timeafter light turns 
 redcheck if there is a 
@@ -288,15 +285,15 @@ sluicedoors. And
 return all clear</label>
 		</transition>
 		<transition>
-			<source ref="id3"/>
-			<target ref="id2"/>
+			<source ref="id2"/>
+			<target ref="id1"/>
 			<label kind="comments" x="756" y="-221">After X amount 
 of time turn it 
 back to red</label>
 		</transition>
 		<transition>
-			<source ref="id4"/>
-			<target ref="id3"/>
+			<source ref="id3"/>
+			<target ref="id2"/>
 			<label kind="comments" x="909" y="-229">Turn the lights
 outgoing inside 
 on green after 
@@ -305,35 +302,35 @@ they are opened
 correctly</label>
 		</transition>
 		<transition>
-			<source ref="id5"/>
-			<target ref="id4"/>
+			<source ref="id4"/>
+			<target ref="id3"/>
 			<label kind="comments" x="1088" y="-238">Return signal 
 after it is open</label>
 		</transition>
 		<transition>
-			<source ref="id24"/>
-			<target ref="id5"/>
+			<source ref="id23"/>
+			<target ref="id4"/>
 			<label kind="comments" x="1241" y="-348">If outgoing
 water level 
 and lock chamber
 is same proceed</label>
 		</transition>
 		<transition>
-			<source ref="id6"/>
-			<target ref="id24"/>
+			<source ref="id5"/>
+			<target ref="id23"/>
 			<label kind="comments" x="1232" y="-195">Check current water
 levels of outgoing
 and lock chamber</label>
 		</transition>
 		<transition>
-			<source ref="id7"/>
-			<target ref="id6"/>
+			<source ref="id6"/>
+			<target ref="id5"/>
 			<label kind="comments" x="1402" y="-102">Return signal 
 after it is closed</label>
 		</transition>
 		<transition>
-			<source ref="id8"/>
-			<target ref="id7"/>
+			<source ref="id7"/>
+			<target ref="id6"/>
 			<label kind="assignment" x="1266" y="0">emptyStack()</label>
 			<label kind="comments" x="1275" y="34">Ater confirmed 
 clear send signal
@@ -341,8 +338,8 @@ to close the
 incoming door</label>
 		</transition>
 		<transition>
-			<source ref="id15"/>
-			<target ref="id8"/>
+			<source ref="id14"/>
+			<target ref="id7"/>
 			<label kind="comments" x="1072" y="25">After x amount of time
 after light turns red
 check if there is a 
@@ -351,8 +348,8 @@ doors. And return all
 clear</label>
 		</transition>
 		<transition>
-			<source ref="id9"/>
-			<target ref="id19"/>
+			<source ref="id8"/>
+			<target ref="id18"/>
 			<label kind="comments" x="756" y="-144">Turn the lights
 incoming outside 
 on green after 
@@ -361,28 +358,28 @@ they are opened
 correctly</label>
 		</transition>
 		<transition>
-			<source ref="id19"/>
-			<target ref="id15"/>
+			<source ref="id18"/>
+			<target ref="id14"/>
 			<label kind="comments" x="892" y="25">After X amount of time
 turn it back to red</label>
 		</transition>
 		<transition>
-			<source ref="id14"/>
-			<target ref="id13"/>
+			<source ref="id13"/>
+			<target ref="id12"/>
 			<label kind="comments" x="340" y="153">Turn on pump to
 empty x amount 
 of distance</label>
 		</transition>
 		<transition>
-			<source ref="id14"/>
-			<target ref="id12"/>
+			<source ref="id13"/>
+			<target ref="id11"/>
 			<label kind="comments" x="289" y="-195">Turn on pump
 to fill up x
 amount of distance</label>
 		</transition>
 		<transition>
-			<source ref="id21"/>
-			<target ref="id14"/>
+			<source ref="id20"/>
+			<target ref="id13"/>
 			<label kind="guard" x="204" y="0">!isEmpty()</label>
 			<label kind="comments" x="187" y="59">Check water level
 incoming traffic 
@@ -397,13 +394,13 @@ opening emidtiatly
 after closing.</label>
 		</transition>
 		<transition>
-			<source ref="id20"/>
-			<target ref="id9"/>
+			<source ref="id19"/>
+			<target ref="id8"/>
 			<label kind="comments" x="544" y="-51">Update state of sluice to open</label>
 		</transition>
 		<transition>
-			<source ref="id16"/>
-			<target ref="id22"/>
+			<source ref="id15"/>
+			<target ref="id21"/>
 			<label kind="comments" x="-144" y="51">Fill in the sensor
 values with the
 start up values that
@@ -411,15 +408,15 @@ are measured.
 Set priority to none</label>
 		</transition>
 		<transition>
-			<source ref="id17"/>
-			<target ref="id16"/>
+			<source ref="id16"/>
+			<target ref="id15"/>
 			<label kind="comments" x="-136" y="204">Close all doors
 after checking if 
 nothing is obstructing it</label>
 		</transition>
 		<transition>
-			<source ref="id18"/>
-			<target ref="id17"/>
+			<source ref="id17"/>
+			<target ref="id16"/>
 			<label kind="assignment" x="-238" y="153">initialize()</label>
 			<label kind="comments" x="-297" y="195">Turn off all the 
 lightsso no boats 
@@ -428,8 +425,8 @@ a working sluice
 after starting up</label>
 		</transition>
 		<transition>
-			<source ref="id22"/>
-			<target ref="id21"/>
+			<source ref="id21"/>
+			<target ref="id20"/>
 			<label kind="comments" x="25" y="-119">Check every x 
 amount of time 
 if there is a 
@@ -437,8 +434,8 @@ request while
 not in use</label>
 		</transition>
 		<transition>
-			<source ref="id21"/>
-			<target ref="id22"/>
+			<source ref="id20"/>
+			<target ref="id21"/>
 			<label kind="select" x="51" y="8">e:id_e</label>
 			<label kind="assignment" x="51" y="25">push(e)</label>
 			<label kind="comments" x="17" y="76">No Request
@@ -447,29 +444,29 @@ go back to idle state</label>
 			<nail x="34" y="68"/>
 		</transition>
 		<transition>
-			<source ref="id23"/>
-			<target ref="id24"/>
+			<source ref="id22"/>
+			<target ref="id23"/>
 			<label kind="comments" x="1419" y="-340">Return updated value ones finished</label>
 			<nail x="1428" y="-306"/>
 			<nail x="1428" y="-272"/>
 		</transition>
 		<transition>
-			<source ref="id25"/>
-			<target ref="id24"/>
+			<source ref="id24"/>
+			<target ref="id23"/>
 			<label kind="comments" x="1411" y="-204">Ruturn updated value ones finished</label>
 			<nail x="1496" y="-204"/>
 			<nail x="1428" y="-204"/>
 		</transition>
 		<transition>
-			<source ref="id24"/>
-			<target ref="id25"/>
+			<source ref="id23"/>
+			<target ref="id24"/>
 			<label kind="comments" x="1462" y="-306">Turn on pump to
 empty x amount 
 of distance</label>
 		</transition>
 		<transition>
-			<source ref="id24"/>
-			<target ref="id23"/>
+			<source ref="id23"/>
+			<target ref="id22"/>
 			<label kind="comments" x="1334" y="-433">Turn on pump
 to fill up x
 amount of distance</label>
@@ -477,9 +474,9 @@ amount of distance</label>
 	</template>
 	<template>
 		<name>PumpEmpty</name>
-		<location id="id26" x="0" y="0">
+		<location id="id25" x="0" y="0">
 		</location>
-		<init ref="id26"/>
+		<init ref="id25"/>
 	</template>
 	<system>// Place template instantiations here.
 
