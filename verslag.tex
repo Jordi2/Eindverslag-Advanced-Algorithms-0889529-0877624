@@ -1,8 +1,16 @@
 \documentclass{article}
 \setcounter{secnumdepth}{0} % removes numeration of (sub)sections
+\usepackage{hyperref} %snel klik in pdf linkjes
 \usepackage{graphicx} 
 \usepackage[dutch,english]{babel}
 \usepackage{graphicx}
+% ref packages
+\usepackage{nameref}
+% folowing  must be in this order
+\usepackage{varioref}
+\usepackage{hyperref}
+\usepackage{cleveref}
+
 \usepackage[table,xcdraw]{xcolor}
 \usepackage[normalem]{ulem}
 % \usepackage{flafter} prevents figures ever floating backwards up the current page
@@ -71,7 +79,7 @@ Er moet een model worden ontwikkeld voor een sluis. Dit model moet abstract geno
 De sluis moet in staat zijn om het waterniveau te reguleren. De sluis is een schutsluis wat betekent dat deze in staat is om boten van de een naar de andere kant, door de schutkolk heen, te leiden. De deuren moeten niet kunnen sluiten op boten. De sluisdeuren moeten automatisch weten wanneer zij open of dicht moeten zijn.
 
 
-\subsection{Requirements / Functionaliteiten-lijst}
+\subsection{Requirements / Functionaliteiten-lijst}\label{sec:FuncList}
 \textbf{ID: F1} \newline
 \textbf{Functionaliteit: Openen en sluiten van de sluisdeur(en)} \newline
 De sluisdeur(en) moeten in staat zijn om open en dicht te gaan in een realistische tijd. \newline
@@ -100,12 +108,14 @@ Een situatie waarin dit gebeurd zou bij goed functioneren niet optreden. Desonda
 \section{Realisatie/Proof of Concept}
 
 \subsection{Technische besluiten}
-//aantal sluisen, etc.
+//aantal sluisen, etc.\\
+Er is gekozen om twee sluisdeuren te modelleren omdat dit complex genoeg is om een model te vereisen en omdat deze genoeg mogelijkheden openhoudt voor enige uitbreidingen. Het model zal zoals in de functionaliteiten-lijst aangegeven op pagina \pageref{sec:FuncList} waterniveau bijhouden en boten door de sluiskolk kunnen leiden.\\\\
+Zie Figuur \ref{fig:sluiceWaterLv} voor een afbeelding hiervan. 
 \begin{figure}[!h]
 	\centering
 	\includegraphics[width=\textwidth]{images/sluis_model.png}
     \caption{Model sluis dat twee sluisdeuren bevat en waterniveau bevat.}
-	%\label{fig:figure2}
+	\label{fig:sluiceWaterLv}
 \end{figure} \newline
 \textbf{Waterpeil}\newline
 Om het waterpeil te meten is er gekozen
@@ -134,6 +144,8 @@ Pompen
 
 
 \subsection{Testen}
+
+De kwaliteit van het gerelaiseerde model wordt gewaarborgd aan de hand van de functionaliteiten, beschreven onder '~\nameref{sec:FuncList}' op pagina ~\pageref{sec:FuncList}. Dit betekent dat er getest wordt op functionaliteit, daarnaast zullen ongewilde situaties zoals deadlocks (zie ~) en zeno gedrag (zie ~) onmogelijk gemaakt worden.
 
 \section{Bijlagen}
 \newpage
