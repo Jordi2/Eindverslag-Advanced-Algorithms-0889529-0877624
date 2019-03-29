@@ -53,7 +53,7 @@
 
 \begin{table}[htp]
 \begin{tabular}{llll}
-\rowcolor[HTML]{9AFF99} 
+\rowcolor[HTML]{FFD700} 
 {\ul \textbf{Versie nr}} & {\ul \textbf{Veranderingen}} & {\ul \textbf{Datum}} & {\ul \textbf{Auteur}} \\
 0.1 & Initieel Concept & 17-3-'19 & J.Luijk \\     
 a & b & c & d \\     
@@ -66,17 +66,17 @@ a & b & c & d
 \textbf{Schutkolk of sluiskolk} \newline
 De ruimte tussen twee sluisdeuren, wordt gebruikt om boten te leiden van de ene naar de andere \cite{definitionschutkolk}.
 \newpage
-\section{Samenvatting}
 \section{Introductie}
 \subsection{Probleemstelling}
-Er moet een model worden ontwikkeld voor een sluis. Dit model moet abstract genoeg zijn om te kunnen worden ingezet in meerdere situaties.
-\section{Theoretisch Kader}
-//hier het onderzoek plaatsen van het individuele verslag
+Er moet een model worden ontwikkeld voor een sluis. Dit model moet abstract genoeg zijn om te kunnen worden ingezet in meerdere situaties. Technische besluiten zoals het aantal sluizen, waterniveaus en de regeling daarvan worden door onderzoek bepaald.
+
+\include{theory}
+
 \section{Onderzoeksresultaten}
 
 \subsection{Vereisten}
 
-De sluis moet in staat zijn om het waterniveau te reguleren. De sluis is een schutsluis wat betekent dat deze in staat is om boten van de een naar de andere kant, door de schutkolk heen, te leiden. De deuren moeten niet kunnen sluiten op boten. De sluisdeuren moeten automatisch weten wanneer zij open of dicht moeten zijn.
+De sluis is een schutsluis wat betekent dat deze in staat is om boten van de een naar de andere kant, door de schutkolk heen, te leiden. De sluis moet volautomatisch kunnen opereren. Dit houd in dat de sluis zelf de benodigde waterniveau bepalen en aanpassen. De sluis deuren moeten vol automatisch open en dicht gaan zonder obstakels er tussen.
 
 
 \subsection{Requirements / Functionaliteiten-lijst}\label{sec:FuncList}
@@ -108,7 +108,7 @@ Een situatie waarin dit gebeurd zou bij goed functioneren niet optreden. Desonda
 \section{Realisatie/Proof of Concept}
 
 \subsection{Technische besluiten}
-//aantal sluisen, etc.\\
+\textbf{Aantal sluizen}\newline
 Er is gekozen om twee sluisdeuren te modelleren omdat dit complex genoeg is om een model te vereisen en omdat deze genoeg mogelijkheden openhoudt voor enige uitbreidingen. Het model zal zoals in de functionaliteiten-lijst aangegeven op pagina \pageref{sec:FuncList} waterniveau bijhouden en boten door de sluiskolk kunnen leiden.\\\\
 Zie Figuur \ref{fig:sluiceWaterLv} voor een afbeelding hiervan. 
 \begin{figure}[!h]
@@ -116,9 +116,26 @@ Zie Figuur \ref{fig:sluiceWaterLv} voor een afbeelding hiervan.
 	\includegraphics[width=\textwidth]{images/sluis_model.png}
     \caption{Model sluis dat twee sluisdeuren bevat en waterniveau bevat.}
 	\label{fig:sluiceWaterLv}
-\end{figure} \newline
-\textbf{Waterpeil}\newline
-Om het waterpeil te meten is er gekozen
+\end{figure}
+
+\noindent\textbf{Waterniveau aanpassen}\newline
+Het waterniveau word aangepast door middel van een water pomp. Deze water pomp moet water in of uit het sluiskolk pompen wanneer er daar een signaal voor gegeven word.\newline
+
+\noindent\textbf{Detectie boten tussen sluisdeuren}\newline
+Detectie of boten nog tussen de sluisdeuren zitten word gedaan door twee setjes van tien tal infrarood sensoren en receivers die geplaatst worden aan de binnenkant van iedere sluisdeur. Met deze methode kan het sluis detecteren of de infrarood sensoren worden geblokkeerd door een object. Zodra de receivers geen signaal meer krijgen betekend het dat er een boot tussen de deuren zit.\newline
+
+\noindent\textbf{Aanmeld systeem}\newline
+Voor het aanmeld systeem is er besloten om een sms systeem op te zetten. Deze systeem krijgt via sms aanmeldingen binnen en die worden vervolgens in het wachtrij gezet in het systeem. \newline
+
+\noindent\textbf{Waterniveau detecteren}\newline
+\newline Om het waterniveau te detecteren is er gekozen om vier tal sensoren te gebruiken. Twee hiervan worden geplaatst in het sluiskolk en twee ervan buiten de sluis. De sensoren moeten in paren gezien worden een voor de eerste sluis deur en een voor de tweede deur. Elke paar sensoren moeten op de zelfde hoogte geplaatst worden dat bepaald word door het waterniveau aan de respectieve kant. Deze sensoren meten hoe hoog het water staat, deze sensoren meten niet de totale waterniveau, er word alleen gemeten hoe hoog het staat relatief aan het sensor, in \ref{fig:sluiceSensoren} kunt u duidelijker zien wat hiermee word bedoeld sensoren worden afgekort met in een S.
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width=\textwidth]{images/sluis_sensoren.png}
+    \caption{Model sluis met positie sensoren.}
+	\label{fig:sluiceSensoren}
+\end{figure} \newpage
+
 
 
 \subsection{Ontwerpen}
@@ -145,7 +162,23 @@ Pompen
 
 \subsection{Testen}
 
-De kwaliteit van het gerelaiseerde model wordt gewaarborgd aan de hand van de functionaliteiten, beschreven onder '~\nameref{sec:FuncList}' op pagina ~\pageref{sec:FuncList}. Dit betekent dat er getest wordt op functionaliteit, daarnaast zullen ongewilde situaties zoals deadlocks (zie ~) en zeno gedrag (zie ~) onmogelijk gemaakt worden.
+De kwaliteit van het gerelaiseerde model wordt gewaarborgd aan de hand van de functionaliteiten, beschreven onder '~\nameref{sec:FuncList}' op pagina ~\pageref{sec:FuncList}. Dit betekent dat er getest wordt op functionaliteit, daarnaast zullen ongewilde situaties zoals deadlocks (zie pagina \pageref{deadlock}) en zeno gedrag (zie pagina \pageref{zenobehavior}) onmogelijk gemaakt worden.
+
+\subsubsection{Resultaten}
+
+Er is op X functionaliteiten getest. De lijst van functionaliteiten en hun beschrijving is te vinden onder \nameref{sec:FuncList} voor gekozen oplossing op pagina \pageref{sec:FuncList}. De functionaliteiten zijn genummerd van F1 tot en met FX.
+
+De functionaliteiten zijn genoteerd als werkend in de aanwezigheid van de ingenieur.
+
+\begin{table}[htp]
+\begin{tabular}{llllll}
+\rowcolor[HTML]{FFD700} 
+{\ul \textbf{Id nr.}} & {\ul \textbf{Actie}} & {\ul \textbf{Input}} & {\ul \textbf{Verwachte output}} & {\ul \textbf{Output}} & {\ul \textbf{Pass/No pass}} \\
+F1 & Initieel Concept & input & v. output & output & No pass \\     
+F1 & Initieel Concept & input & v. output & output & No pass \\ 
+F1 & Initieel Concept & input & v. output & output & No pass
+\end{tabular}
+\end{table}
 
 \section{Bijlagen}
 \newpage
