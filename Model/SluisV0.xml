@@ -3,9 +3,14 @@
 <nta>
 	<declaration>// Place global declarations here.
 
+const int waterLvMin = 1;
+const int waterLvMax = 3;
+
+
 //elements are integers between 0 and 10, custom data type, used for stack
 typedef int[0,1] id_e;
-typedef int[1,3] level;//we have three water levels, can be expanded if needed
+//we have three water levels, can be expanded if needed
+typedef int[waterLvMin,waterLvMax] level;
 
 id_e popped;
 
@@ -23,7 +28,9 @@ level waterLevelRight;
 */</declaration>
 	<template>
 		<name x="5" y="5">Main</name>
-		<declaration>// Place local declarations here.
+		<declaration>//------------------------------
+// Variables
+//------------------------------
 
 //stack grootte
 const int size = 2;
@@ -31,8 +38,15 @@ const int size = 2;
 //stack pointer to current element
 int[0,size] head=0;
 
+//activate pump?
+bool activatePump = false;
+bool shouldWaterLevelBeRaised = false; //if true water will be lowered
+
+//boat priority, used to determine which gate to open and what water level the pumps need to reach
+bool isLeftGateFirst = false;
+
 //------------------------------
-// The stack
+// The boats stack
 //------------------------------
 
 //id_e boatsInQueue[size];//boatsInQueue[0] is left side, boatsInQueue[1] is right side
@@ -48,10 +62,12 @@ void push(id_e e)
         head=0;
     }
 
-    if(head==0){
-        boatsInQueueLeft = e;
-    } else if(head==1){
-        boatsInQueueRight = e;
+    if(e == 1){//prevent boats from leaving
+        if(head==0){
+            boatsInQueueLeft = e;
+        } else if(head==1){
+            boatsInQueueRight = e;
+        }
     }
 
     head++;
@@ -101,54 +117,84 @@ bool isEmpty()
 
 /*end stack*/
 
+//------------------------------
+// Initialize
+//------------------------------
+
 void initialize(){
     waterLevelLeft = 3;
     waterLevelLockChamber = 2;
     waterLevelRight = 1;
 }
-void fillLockChamber(){   
-    if(waterLevelLeft &gt; waterLevelLockChamber){
+
+/*end initialize*/
+
+//------------------------------
+// Lock Chamber
+//------------------------------
+
+//raise water level
+void fillLockChamber(){ 
+    if(waterLevelLockChamber != waterLvMax){  //just in case check to see if we don't go out of defined integer range
         waterLevelLockChamber = waterLevelLockChamber+1;
     }
 }
 
+//lower water level
 void emptyLockChamber(){
-    if(waterLevelRight &lt; waterLevelLockChamber){
+    if(waterLevelLockChamber != waterLvMin){ //just in case check to see if we don't go out of defined integer range
         waterLevelLockChamber = waterLevelLockChamber-1;
     }
 }
 
+//check if water level higher/lower than LEFT side
 bool waterLevelCheckLeftSame(){
     if(waterLevelLeft == waterLevelLockChamber){
-        return true;//keep level
+        return false;//keep level
     } else if(waterLevelLeft &lt; waterLevelLockChamber){
-        emptyLockChamber();
+        shouldWaterLevelBeRaised = false;
     } else if(waterLevelLeft &gt; waterLevelLockChamber){
-        fillLockChamber();
+        shouldWaterLevelBeRaised = true;
     }
-    return false;
-}
-bool waterLevelCheckRightSame(){
-    if(waterLevelRight == waterLevelLockChamber){
-        return true;//keep level
-    } else if(waterLevelRight &lt; waterLevelLockChamber){
-        emptyLockChamber();
-    } else if(waterLevelRight &gt; waterLevelLockChamber){
-        fillLockChamber();
-    }
-    return false;
+    return true;
 }
 
-bool passRequestPriority(){ //decides which que is going trough the sluice
-    if(boatsInQueueLeft==1&amp;&amp;boatsInQueueRight==1){//Give priority to left
-        return waterLevelCheckLeftSame();
-    } else if(boatsInQueueLeft==1&amp;&amp;boatsInQueueRight==0){//Priority to left
-        return waterLevelCheckLeftSame();
-    } else if(boatsInQueueLeft==0&amp;&amp;boatsInQueueRight==1){//Priority to Right
-        return waterLevelCheckRightSame();
+//check if water level higher/lower than RIGHT side
+bool waterLevelCheckRightSame(){
+    if(waterLevelRight == waterLevelLockChamber){
+        return false;//keep level
+    } else if(waterLevelRight &lt; waterLevelLockChamber){
+        shouldWaterLevelBeRaised = false;
+    } else if(waterLevelRight &gt; waterLevelLockChamber){
+        shouldWaterLevelBeRaised = true;
     }
-    return true;//shouldn't be able to get here, make emergency state
+    return true;
 }
+
+//decides which que of boats is going trough the sluice first
+void passRequestPriority(){ 
+    activatePump = false;
+    if(boatsInQueueLeft==1&amp;&amp;boatsInQueueRight==1){//Give priority to left
+        activatePump = waterLevelCheckLeftSame();
+        isLeftGateFirst = true;
+    } else if(boatsInQueueLeft==1&amp;&amp;boatsInQueueRight==0){//Priority to left
+        activatePump = waterLevelCheckLeftSame();
+        isLeftGateFirst = true;
+    } else if(boatsInQueueLeft==0&amp;&amp;boatsInQueueRight==1){//Priority to Right
+        activatePump = waterLevelCheckRightSame();
+        isLeftGateFirst = false;
+    }
+}
+
+bool activateThePump(){
+    return activatePump;
+}
+
+bool raiseWaterLv(){
+    return shouldWaterLevelBeRaised;
+}
+
+/*end lock chamber*/
 
 
 </declaration>
@@ -185,11 +231,11 @@ bool passRequestPriority(){ //decides which que is going trough the sluice
 		<location id="id10" x="170" y="-238">
 			<name x="93" y="-272">sluiceOutgoingClosed</name>
 		</location>
-		<location id="id11" x="340" y="-110">
-			<name x="306" y="-144">pumpFill</name>
+		<location id="id11" x="340" y="-102">
+			<name x="306" y="-136">pumpFill</name>
 		</location>
-		<location id="id12" x="340" y="110">
-			<name x="297" y="127">pumpEmpty</name>
+		<location id="id12" x="340" y="102">
+			<name x="297" y="119">pumpEmpty</name>
 		</location>
 		<location id="id13" x="340" y="0">
 			<name x="280" y="-34">waterLevelCheck</name>
@@ -229,19 +275,23 @@ bool passRequestPriority(){ //decides which que is going trough the sluice
 		</location>
 		<init ref="id17"/>
 		<transition>
-			<source ref="id13"/>
-			<target ref="id19"/>
-			<label kind="comments" x="391" y="-17">Keep water level</label>
+			<source ref="id11"/>
+			<target ref="id13"/>
+			<label kind="assignment" x="399" y="-102">passRequestPriority()</label>
+			<nail x="476" y="-102"/>
+			<nail x="476" y="-34"/>
 		</transition>
 		<transition>
 			<source ref="id12"/>
-			<target ref="id19"/>
-			<nail x="450" y="110"/>
+			<target ref="id13"/>
+			<label kind="assignment" x="399" y="76">passRequestPriority()</label>
+			<nail x="476" y="102"/>
+			<nail x="476" y="34"/>
 		</transition>
 		<transition>
-			<source ref="id11"/>
+			<source ref="id13"/>
 			<target ref="id19"/>
-			<nail x="450" y="-110"/>
+			<label kind="guard" x="399" y="0">!activateThePump()</label>
 		</transition>
 		<transition>
 			<source ref="id10"/>
@@ -366,6 +416,8 @@ turn it back to red</label>
 		<transition>
 			<source ref="id13"/>
 			<target ref="id12"/>
+			<label kind="guard" x="297" y="34">!raiseWaterLv()</label>
+			<label kind="assignment" x="272" y="51">emptyLockChamber()</label>
 			<label kind="comments" x="340" y="153">Turn on pump to
 empty x amount 
 of distance</label>
@@ -373,6 +425,8 @@ of distance</label>
 		<transition>
 			<source ref="id13"/>
 			<target ref="id11"/>
+			<label kind="guard" x="297" y="-85">raiseWaterLv()</label>
+			<label kind="assignment" x="297" y="-68">fillLockChamber()</label>
 			<label kind="comments" x="289" y="-195">Turn on pump
 to fill up x
 amount of distance</label>
@@ -381,17 +435,7 @@ amount of distance</label>
 			<source ref="id20"/>
 			<target ref="id13"/>
 			<label kind="guard" x="204" y="0">!isEmpty()</label>
-			<label kind="comments" x="187" y="59">Check water level
-incoming traffic 
-and lock chamber.
-After determining a
-pass request and 
-assigning priority.
-Priority is for the 
-opposite side of last 
-opened sluice when
-opening emidtiatly 
-after closing.</label>
+			<label kind="assignment" x="204" y="17">passRequestPriority()</label>
 		</transition>
 		<transition>
 			<source ref="id19"/>
