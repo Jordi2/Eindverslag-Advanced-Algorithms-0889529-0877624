@@ -9,6 +9,7 @@ const int waterLvMax = 3;
 
 //elements are integers between 0 and 10, custom data type, used for stack
 typedef int[0,1] id_e;
+typedef int[0,3] gateState;//0, 1, 2, 3 = closed, opening..., open, closing...
 //we have three water levels, can be expanded if needed
 typedef int[waterLvMin,waterLvMax] level;
 
@@ -17,6 +18,9 @@ id_e popped;
 level waterLevelLeft;
 level waterLevelLockChamber;
 level waterLevelRight;
+
+gateState leftGateState = 0;  //closed
+gateState rightGateState = 0; //closed
 
 
 //info:
@@ -84,8 +88,11 @@ void emptyStack()
     head = 0;
     //remember 
 
-    boatsInQueueLeft = 0;
-    boatsInQueueRight = 0;
+    if(isLeftGateFirst){
+        boatsInQueueLeft = 0;
+    } else {
+        boatsInQueueRight = 0;
+    }
 }
 //stack pop
 /*id_e pop()
@@ -186,6 +193,15 @@ void passRequestPriority(){
     }
 }
 
+void passRequestPriorityLockChamber(){ 
+    activatePump = false;
+    if(isLeftGateFirst){
+        activatePump = waterLevelCheckRightSame();
+    } else {
+        activatePump = waterLevelCheckLeftSame();
+    }
+}
+
 bool activateThePump(){
     return activatePump;
 }
@@ -196,7 +212,20 @@ bool raiseWaterLv(){
 
 /*end lock chamber*/
 
+//------------------------------
+// Gates
+//------------------------------
 
+//gate states: 0-&gt;1-&gt;2-&gt;3 = closed-&gt;opening...-&gt;opened-&gt;closing...
+void updateGateState(){
+    if(isLeftGateFirst){
+        (leftGateState != 3) ? leftGateState++ : leftGateState = 0;
+    } else {
+        (rightGateState != 3) ? rightGateState++ : rightGateState = 0;
+    }
+}
+
+/*end gates*/
 </declaration>
 		<location id="id0" x="578" y="-238">
 			<name x="484" y="-289">sensorSluiceOutgoingBoatClear</name>
@@ -238,7 +267,7 @@ bool raiseWaterLv(){
 			<name x="297" y="119">pumpEmpty</name>
 		</location>
 		<location id="id13" x="340" y="0">
-			<name x="280" y="-34">waterLevelCheck</name>
+			<name x="289" y="-34">waterLevelCheck</name>
 		</location>
 		<location id="id14" x="1054" y="0">
 			<name x="969" y="-51">lightsIncomingOutsideRed</name>
@@ -264,14 +293,14 @@ bool raiseWaterLv(){
 		<location id="id21" x="0" y="0">
 			<name x="-10" y="-34">idle</name>
 		</location>
-		<location id="id22" x="1394" y="-348">
-			<name x="1360" y="-382">pumpFill2</name>
+		<location id="id22" x="1394" y="-340">
+			<name x="1360" y="-374">pumpFill2</name>
 		</location>
 		<location id="id23" x="1394" y="-238">
 			<name x="1334" y="-272">waterLevelCheck2</name>
 		</location>
-		<location id="id24" x="1530" y="-238">
-			<name x="1487" y="-221">pumpEmpty2</name>
+		<location id="id24" x="1598" y="-238">
+			<name x="1555" y="-221">pumpEmpty2</name>
 		</location>
 		<init ref="id17"/>
 		<transition>
@@ -291,7 +320,8 @@ bool raiseWaterLv(){
 		<transition>
 			<source ref="id13"/>
 			<target ref="id19"/>
-			<label kind="guard" x="399" y="0">!activateThePump()</label>
+			<label kind="guard" x="408" y="0">!activateThePump()</label>
+			<label kind="assignment" x="408" y="17">updateGateState()</label>
 		</transition>
 		<transition>
 			<source ref="id10"/>
@@ -360,32 +390,23 @@ after it is open</label>
 		<transition>
 			<source ref="id23"/>
 			<target ref="id4"/>
-			<label kind="comments" x="1241" y="-348">If outgoing
-water level 
-and lock chamber
-is same proceed</label>
+			<label kind="guard" x="1249" y="-238">!activateThePump()</label>
 		</transition>
 		<transition>
 			<source ref="id5"/>
 			<target ref="id23"/>
-			<label kind="comments" x="1232" y="-195">Check current water
-levels of outgoing
-and lock chamber</label>
+			<label kind="assignment" x="1275" y="-195">passRequestPriorityLockChamber()</label>
 		</transition>
 		<transition>
 			<source ref="id6"/>
 			<target ref="id5"/>
-			<label kind="comments" x="1402" y="-102">Return signal 
-after it is closed</label>
+			<label kind="assignment" x="1334" y="-76">updateGateState()</label>
 		</transition>
 		<transition>
 			<source ref="id7"/>
 			<target ref="id6"/>
-			<label kind="assignment" x="1266" y="0">emptyStack()</label>
-			<label kind="comments" x="1275" y="34">Ater confirmed 
-clear send signal
-to close the 
-incoming door</label>
+			<label kind="assignment" x="1266" y="0">emptyStack(),
+updateGateState()</label>
 		</transition>
 		<transition>
 			<source ref="id14"/>
@@ -410,23 +431,20 @@ correctly</label>
 		<transition>
 			<source ref="id18"/>
 			<target ref="id14"/>
-			<label kind="comments" x="892" y="25">After X amount of time
+			<label kind="comments" x="901" y="102">After X amount of time
 turn it back to red</label>
 		</transition>
 		<transition>
 			<source ref="id13"/>
 			<target ref="id12"/>
-			<label kind="guard" x="297" y="34">!raiseWaterLv()</label>
-			<label kind="assignment" x="272" y="51">emptyLockChamber()</label>
-			<label kind="comments" x="340" y="153">Turn on pump to
-empty x amount 
-of distance</label>
+			<label kind="guard" x="280" y="34">!raiseWaterLv()</label>
+			<label kind="assignment" x="280" y="68">emptyLockChamber()</label>
 		</transition>
 		<transition>
 			<source ref="id13"/>
 			<target ref="id11"/>
 			<label kind="guard" x="297" y="-85">raiseWaterLv()</label>
-			<label kind="assignment" x="297" y="-68">fillLockChamber()</label>
+			<label kind="assignment" x="297" y="-51">fillLockChamber()</label>
 			<label kind="comments" x="289" y="-195">Turn on pump
 to fill up x
 amount of distance</label>
@@ -440,7 +458,7 @@ amount of distance</label>
 		<transition>
 			<source ref="id19"/>
 			<target ref="id8"/>
-			<label kind="comments" x="544" y="-51">Update state of sluice to open</label>
+			<label kind="assignment" x="603" y="0">updateGateState()</label>
 		</transition>
 		<transition>
 			<source ref="id15"/>
@@ -471,49 +489,40 @@ after starting up</label>
 		<transition>
 			<source ref="id21"/>
 			<target ref="id20"/>
-			<label kind="comments" x="25" y="-119">Check every x 
-amount of time 
-if there is a 
-request while 
-not in use</label>
 		</transition>
 		<transition>
 			<source ref="id20"/>
 			<target ref="id21"/>
 			<label kind="select" x="51" y="8">e:id_e</label>
 			<label kind="assignment" x="51" y="25">push(e)</label>
-			<label kind="comments" x="17" y="76">No Request
-go back to idle state</label>
 			<nail x="136" y="68"/>
 			<nail x="34" y="68"/>
 		</transition>
 		<transition>
 			<source ref="id22"/>
 			<target ref="id23"/>
-			<label kind="comments" x="1419" y="-340">Return updated value ones finished</label>
-			<nail x="1428" y="-306"/>
-			<nail x="1428" y="-272"/>
+			<label kind="assignment" x="1436" y="-340">passRequestPriorityLockChamber()</label>
+			<nail x="1598" y="-340"/>
+			<nail x="1598" y="-272"/>
 		</transition>
 		<transition>
 			<source ref="id24"/>
 			<target ref="id23"/>
-			<label kind="comments" x="1411" y="-204">Ruturn updated value ones finished</label>
-			<nail x="1496" y="-204"/>
-			<nail x="1428" y="-204"/>
+			<label kind="assignment" x="1496" y="-161">passRequestPriorityLockChamber()</label>
+			<nail x="1598" y="-136"/>
+			<nail x="1428" y="-136"/>
 		</transition>
 		<transition>
 			<source ref="id23"/>
 			<target ref="id24"/>
-			<label kind="comments" x="1462" y="-306">Turn on pump to
-empty x amount 
-of distance</label>
+			<label kind="guard" x="1453" y="-255">!raiseWaterLv()</label>
+			<label kind="assignment" x="1428" y="-221">emptyLockChamber()</label>
 		</transition>
 		<transition>
 			<source ref="id23"/>
 			<target ref="id22"/>
-			<label kind="comments" x="1334" y="-433">Turn on pump
-to fill up x
-amount of distance</label>
+			<label kind="guard" x="1343" y="-323">raiseWaterLv()</label>
+			<label kind="assignment" x="1343" y="-289">fillLockChamber()</label>
 		</transition>
 	</template>
 	<template>
