@@ -52,12 +52,27 @@
 \section{Versiebeheer}
 
 \begin{table}[htp]
-\begin{tabular}{llll}
+\begin{tabular}{|l|p{2.5in}|l|l|}
+\hline
 \rowcolor[HTML]{FFD700} 
 {\ul \textbf{Versie nr}} & {\ul \textbf{Veranderingen}} & {\ul \textbf{Datum}} & {\ul \textbf{Auteur}} \\
-0.1 & Initieel Concept & 17-3-'19 & J.Luijk \\     
-a & b & c & d \\     
-a & b & c & d   
+\hline
+0.1 & Initieel Concept & 17-3-'19 & J.Luijk \\    
+\hline
+0.2 &  Added requirements and structure, added first Uppaal temp & 18-3-'19 & J.Luijk, E.Tukuc \\ 
+\hline
+0.3 &  Implemented stack handling for boats in queue, added sluice model& 21-3-'19 & J.Luijk\\ 
+\hline
+0.4 & uppaal model can now detect which side a boat is on, what the water levels are and adjust the waterlevel accordingly. & 22-3-'19 & J.Luijk\\ 
+\hline
+0.5 & Added waterlevel changes to Uppaal model & 25-3-'19 & J.Luijk, E.Tukuc\\ 
+\hline
+0.6 & Technical decisions text added and expanded, theoretisch kader expanded  & 29-3-'19 &  J.Luijk\\ 
+\hline
+0.7 & lockchamber water level will now be adjusted for boats trying to pass through gate now openens to let in boats and closes afterwards, water level in lockchamber then adapts to fit the site the boats want to go & 1-4-'19 & J.Luijk  \\ 
+\hline
+0.8 & added stakeholders and added value of research, uppaal model now has lights to signal with, sluices now do obstruction detection and boats can now enter lockchamber immediately after it has been emptied& 4-4-'19 & J.Luijk \\ 
+\hline
 \end{tabular}
 \end{table}
 \newpage
@@ -98,15 +113,15 @@ Het water niveau aan beide kanten van de sluis en binnen de sluiskolk moet kunne
 \textbf{Functionaliteit: Waterniveau reguleren} \newline
 Het water niveau in de sluiskolk moet door middel van pompen kunnen worden verhoogd of verlaagt. \newline
 
-\textbf{ID: F5} \newline
+\textbf{ID: F4} \newline
 \textbf{Functionaliteit: Boten moeten kunnen signaleren dat zei willen oversteken} \newline
 Door middel van een signaal weet de sluis welke sluisdeuren deze moet open. \newline
 
-\textbf{ID: F6} \newline
+\textbf{ID: F5} \newline
 \textbf{Functionaliteit: Sluisdeuren kunnen niet sluiten als er een obstakel in de weg zit} \newline
 Obstakel kan een boot zijn. Voor de veiligheid van deze boten moeten de sluisdeuren niet kunnen sluiten totdat obstakels zijn verwijderd.  \newline
 
-\textbf{ID: F7} \newline
+\textbf{ID: F6} \newline
 \textbf{Functionaliteit: Beide sluisdeuren kunnen niet tegelijk open zijn.} \newline
 Een situatie waarin dit gebeurd zou bij goed functioneren niet optreden. Desondanks zal deze wel worden gemoduleerd. \newline
 
@@ -145,7 +160,6 @@ Voor het aanmeld systeem is er besloten om een sms systeem op te zetten. Deze sy
 
 
 \subsection{Ontwerpen}
-//screen capture Uppaal model \newline
 
 1) Waterniveau in sluiskolk gelijkmaken aan links \newline
 2) Deuren links openen \newline
@@ -159,7 +173,7 @@ Voor het aanmeld systeem is er besloten om een sms systeem op te zetten. Deze sy
 8a) opt: check of deuren dicht kunnen, geen obstructie \newline
 8b) deuren rechts dicht \newline
 
-Onderdelen templates: \newline
+\noindent Onderdelen templates: \newline
 Sluisen \newline
 Sensoren (water niveau) \newline
 Actuatoren (licht, opt: geluid) \newline
@@ -172,21 +186,42 @@ De kwaliteit van het gerelaiseerde model wordt gewaarborgd aan de hand van de fu
 
 \subsubsection{Resultaten}
 
-Er is op X functionaliteiten getest. De lijst van functionaliteiten en hun beschrijving is te vinden onder \nameref{sec:FuncList} voor gekozen oplossing op pagina \pageref{sec:FuncList}. De functionaliteiten zijn genummerd van F1 tot en met FX.
+Er is op zes functionaliteiten getest. De lijst van functionaliteiten en hun beschrijving is te vinden onder \nameref{sec:FuncList} voor gekozen oplossing op pagina \pageref{sec:FuncList}. De functionaliteiten zijn genummerd van F1 tot en met F6.
 
-De functionaliteiten zijn genoteerd als werkend in de aanwezigheid van de ingenieur.
+Een 'pass' betekent dat de functionaliteiten zijn genoteerd als werkend in de aanwezigheid van de ingenieur.
+
+%length of columns
+\newcommand{\lengthy}{1.5in}
 
 \begin{table}[htp]
-\begin{tabular}{llllll}
+\begin{tabular}{cp\lengthy cp\lengthy cp\lengthy cp\lengthy cp\lengthy cp\lengthy}
 \rowcolor[HTML]{FFD700} 
-{\ul \textbf{Id nr.}} & {\ul \textbf{Actie}} & {\ul \textbf{Input}} & {\ul \textbf{Verwachte output}} & {\ul \textbf{Output}} & {\ul \textbf{Pass/No pass}} \\
-F1 & Initieel Concept & input & v. output & output & No pass \\     
-F1 & Initieel Concept & input & v. output & output & No pass \\ 
-F1 & Initieel Concept & input & v. output & output & No pass
+{\ul \textbf{Id nr.}} & {\ul \textbf{Input}} & {\ul \textbf{Verwachte output}} & {\ul \textbf{Output}} & {\ul \textbf{Pass/No pass}} \\
+F1 & boten gedecteerd & slijs opent/sluit & slijs opent/sluit & Pass \\     
+F2 & waterlevel buitenwereld & waterlevels & waterlevels & Pass \\ 
+F3 & waterlevel sluiskolk & aangepast waterlevel & aangepast waterlevel & Pass \\
+F4 & boot gedecteerd & links of rechts & links of recht & Pass \\ 
+F5 & een obstructie & obstakel & obstakel & Pass \\ 
+F6 & beide deuren open & alert & alert & No pass
 \end{tabular}
+
 \end{table}
 
 \section{Bijlagen}
+
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width=\textwidth]{images/State diagram2.png}
+    \caption{State transition diagram of model.}
+	\label{fig:sluiceSensoren}
+\end{figure}
+\newpage
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width=\textwidth]{images/Uppaal_model.png}
+    \caption{Uppaal model.}
+	\label{fig:sluiceSensoren}
+\end{figure}
 \newpage
 \bibliography{references}
 \bibliographystyle{plain}
