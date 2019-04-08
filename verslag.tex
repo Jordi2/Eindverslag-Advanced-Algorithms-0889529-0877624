@@ -4,6 +4,7 @@
 \usepackage{graphicx} 
 \usepackage[dutch,english]{babel}
 \usepackage{graphicx}
+\usepackage{rotating}
 % ref packages
 \usepackage{nameref}
 % folowing  must be in this order
@@ -97,7 +98,7 @@ Ministerie van Infrastructuur en Waterstaat is geïnteresseerd in een modellen d
 
 \subsection{Vereisten}
 
-De sluis is een schutsluis wat betekent dat deze in staat is om boten van de een naar de andere kant, door de schutkolk heen, te leiden. De sluis moet volautomatisch kunnen opereren. Dit houd in dat de sluis zelf de benodigde waterniveau bepalen en aanpassen. De sluis deuren moeten vol automatisch open en dicht gaan zonder obstakels er tussen.
+De sluis is een schutsluis wat betekent dat deze in staat is om boten van de een naar de andere kant, door de schutkolk heen, te leiden. De sluis moet volautomatisch kunnen opereren. Dit houd in dat de sluis zelf de benodigde waterniveau bepalen en aanpassen. De sluis deuren moeten vol automatisch open en dicht gaan zonder obstakels er tussen. Er moet enige mogelijkheid zijn om met storingen in het systeem om te gaan.
 
 
 \subsection{Requirements / Functionaliteiten-lijst}\label{sec:FuncList}
@@ -146,7 +147,7 @@ Het waterniveau word aangepast door middel van een water pomp. Deze water pomp m
 Detectie of boten nog tussen de sluisdeuren zitten word gedaan door twee setjes van tien tal infrarood sensoren en receivers die geplaatst worden aan de binnenkant van iedere sluisdeur. Met deze methode kan het sluis detecteren of de infrarood sensoren worden geblokkeerd door een object. Zodra de receivers geen signaal meer krijgen betekend het dat er een boot tussen de deuren zit.\newline
 
 \noindent\textbf{Aanmeld systeem}\newline
-Voor het aanmeld systeem is er besloten om een sms systeem op te zetten. Deze systeem krijgt via sms aanmeldingen binnen en die worden vervolgens in het wachtrij gezet in het systeem. \newline
+Voor het aanmeld systeem is er besloten om een sms systeem op te zetten. Deze systeem krijgt via sms aanmeldingen binnen en die worden vervolgens in het wachtrij gezet in het systeem. \newline \\
 
 \noindent\textbf{Waterniveau detecteren}\newline
 \newline Om het waterniveau te detecteren is er gekozen om vier tal sensoren te gebruiken. Twee hiervan worden geplaatst in het sluiskolk en twee ervan buiten de sluis. De sensoren moeten in paren gezien worden een voor de eerste sluis deur en een voor de tweede deur. Elke paar sensoren moeten op de zelfde hoogte geplaatst worden dat bepaald word door het waterniveau aan de respectieve kant. Deze sensoren meten hoe hoog het water staat, deze sensoren meten niet de totale waterniveau, er word alleen gemeten hoe hoog het staat relatief aan het sensor, in figuur \ref{fig:sluiceSensoren} kunt u duidelijker zien wat hiermee word bedoeld sensoren worden afgekort met een S. De sensoren hebben 5 meetpunten even verdeeld over de hele lengte van de sensor.
@@ -202,27 +203,45 @@ F2 & waterlevel buitenwereld & waterlevels & waterlevels & Pass \\
 F3 & waterlevel sluiskolk & aangepast waterlevel & aangepast waterlevel & Pass \\
 F4 & boot gedecteerd & links of rechts & links of recht & Pass \\ 
 F5 & een obstructie & obstakel & obstakel & Pass \\ 
-F6 & beide deuren open & alert & alert & No pass
+F6 & beide deuren open & alert & alert & Pass
 \end{tabular}
 
 \end{table}
+\section{Conclusie}
 
+Het gerealiseerde Uppaal model is te zien in Figuur \ref{fig:uppaalmodel} en \ref{fig:uppaalmodelsideways} in de bijlage. \\
+
+\subsection{Eigenschappen model}
+Een mogelijke uitbreiding voor het model zijn queues die het aantal boten kan aantonen in plaats van alleen aantonen dat er boten zijn. Het aantal staten in het model zijn zo veel mogelijk minimaal gehouden, staten worden niet hergebruikt. Ieder deel van het model kan worden hergeleid naar een component van het gemodelleerde object. Het model is een ideaal van de objecten die in het echte systeem zullen bestaan, dit is om de simpliciteit van het model te garanderen.
+
+
+
+
+\newpage
 \section{Bijlagen}
 
 \begin{figure}[!h]
 	\centering
-	\includegraphics[width=\textwidth]{images/State diagram2.png}
+	\includegraphics[width=\textwidth]{images/State_diagram2.png}
     \caption{State transition diagram of model.}
-	\label{fig:sluiceSensoren}
 \end{figure}
 \newpage
 \begin{figure}[!h]
 	\centering
 	\includegraphics[width=\textwidth]{images/Uppaal_model.png}
     \caption{Uppaal model.}
-	\label{fig:sluiceSensoren}
+    \label{fig:uppaalmodel}
 \end{figure}
 \newpage
+\begin{sidewaysfigure}[!ht]
+	\centering
+	\includegraphics[width=\textwidth]{images/Uppaal_model.png}
+    \caption{Uppaal model.}
+    \label{fig:uppaalmodelsideways}
+\end{sidewaysfigure}
+\clearpage
+\newpage
+
 \bibliography{references}
 \bibliographystyle{plain}
 
