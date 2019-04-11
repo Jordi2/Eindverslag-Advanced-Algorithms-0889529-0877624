@@ -90,7 +90,7 @@ Er moet een model worden ontwikkeld voor een sluis. Dit model moet abstract geno
 Het resultaat van het onderzoek zal de stakeholder betere grip geven op het gebied van ict en systemen en hun mogelijkheden op deze gebieden vergroten. 
 
 \subsection{Stakeholders}
-Ministerie van Infrastructuur en Waterstaat is geïnteresseerd in een modellen die ze mogelijk kunnen integreren in het huidige infrastructuur.
+Ministerie van Infrastructuur en Waterstaat is geïnteresseerd in een model dat kan worden geïntegreerd in huidige infrastructuur.
 
 \include{theory}
 
@@ -162,19 +162,32 @@ Voor het aanmeld systeem is er besloten om een sms systeem op te zetten. Deze sy
 
 \subsection{Ontwerpen}
 
-1) Waterniveau in sluiskolk gelijkmaken aan links \newline
-2) Deuren links openen \newline
-3) boten de sluiskolk in \newline
-4a) opt: check of deuren dicht kunnen, geen obstructie \newline
-4b) deuren links dicht \newline
-5) waterniveau verlagen naar die van de rechter kant \newline
-6) Deuren links openen \newline
-7a) boten uit de sluiskolk \newline
-7b) nieuwe boten van de rechter kant binnenlaten \newline
-8a) opt: check of deuren dicht kunnen, geen obstructie \newline
-8b) deuren rechts dicht \newline
+\subsubsection{Loop van het model}
 
-\noindent Onderdelen templates: \newline
+1) Waterniveau in sluiskolk gelijkmaken aan links \newline 
+
+\noindent 2) Deuren links openen \newline
+2a) opt: check of beide sluisdeuren open, en zo ja geef storing aan \newline 
+
+\noindent 3) boten de sluiskolk in \newline
+
+\noindent 4) deuren links dicht \newline
+4a) opt: check of deuren dicht kunnen, geen obstructie \newline
+4b) opt: check of beide sluisdeuren open, en zo ja geef storing aan \newline 
+
+\noindent 5) waterniveau verlagen naar die van de rechter kant \newline
+
+\noindent 6) Deuren links openen \newline
+6a) opt: check of beide sluisdeuren open, en zo ja geef storing aan \newline 
+
+\noindent 7) boten uit de sluiskolk \newline
+7a) opt: indien aanwezig, nieuwe boten van de rechter kant binnenlaten \newline
+
+\noindent 8) deuren rechts dicht \newline
+8a) opt: check of deuren dicht kunnen, geen obstructie \newline
+8b) opt: check of beide sluisdeuren open, en zo ja geef storing aan \newline
+
+\subsubsection{Onderdelen template model}
 Sluisen \newline
 Sensoren (water niveau) \newline
 Actuatoren (licht, opt: geluid) \newline
