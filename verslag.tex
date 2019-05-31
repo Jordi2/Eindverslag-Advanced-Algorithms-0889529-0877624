@@ -74,6 +74,12 @@
 \hline
 0.8 & added stakeholders and added value of research, uppaal model now has lights to signal with, sluices now do obstruction detection and boats can now enter lockchamber immediately after it has been emptied& 4-4-'19 & J.Luijk \\ 
 \hline
+0.9 & Model update: fixed issue of zeno pump behaviour, boats now enter queue through sync, uppaal model and state transtion png added to attachments, version log updated, minor text changes and additions & 5-4-'19 & J.Luijk, E.Tukuc \\ 
+\hline
+0.10 & Added conclusion to draft, Model update: gate can now malfunction an trigger emergency reset, model now uses multiple templates & 8-4-'19 & J.Luijk, E.Tukuc \\ 
+\hline
+1.0 & Fixed deadlock & 11-4-'19 & J.Luijk, E.Tukuc \\ 
+\hline
 \end{tabular}
 \end{table}
 \newpage
@@ -98,7 +104,7 @@ Ministerie van Infrastructuur en Waterstaat is geïnteresseerd in een model dat 
 
 \subsection{Vereisten}
 
-De sluis is een schutsluis wat betekent dat deze in staat is om boten van de een naar de andere kant, door de schutkolk heen, te leiden. De sluis moet volautomatisch kunnen opereren. Dit houd in dat de sluis zelf de benodigde waterniveau bepalen en aanpassen. De sluis deuren moeten vol automatisch open en dicht gaan zonder obstakels er tussen. Er moet enige mogelijkheid zijn om met storingen in het systeem om te gaan.
+De sluis is een schutsluis wat betekent dat deze in staat is om boten van de een naar de andere kant, door de schutkolk heen, te leiden. De sluis moet volautomatisch kunnen opereren. Dit houd in dat de sluis zelf het waterniveau moet kunnen waarnemen, bepalen en aanpassen. De sluis deuren moeten vol automatisch open en dicht gaan, voordat de deuren dicht gaan moet er wel gecontroleerd worden op obstakels zoals boten. Er moet enige mogelijkheid zijn om met storingen in het systeem om te gaan.
 
 
 \subsection{Requirements / Functionaliteiten-lijst}\label{sec:FuncList}
@@ -211,7 +217,7 @@ Een 'pass' betekent dat de functionaliteiten zijn genoteerd als werkend in de aa
 \begin{tabular}{cp\lengthy cp\lengthy cp\lengthy cp\lengthy cp\lengthy cp\lengthy}
 \rowcolor[HTML]{FFD700} 
 {\ul \textbf{Id nr.}} & {\ul \textbf{Input}} & {\ul \textbf{Verwachte output}} & {\ul \textbf{Output}} & {\ul \textbf{Pass/No pass}} \\
-F1 & boten gedecteerd & slijs opent/sluit & slijs opent/sluit & Pass \\     
+F1 & boten gedecteerd & sluis opent/sluit & sluis opent/sluit & Pass \\     
 F2 & waterlevel buitenwereld & waterlevels & waterlevels & Pass \\ 
 F3 & waterlevel sluiskolk & aangepast waterlevel & aangepast waterlevel & Pass \\
 F4 & boot gedecteerd & links of rechts & links of recht & Pass \\ 
