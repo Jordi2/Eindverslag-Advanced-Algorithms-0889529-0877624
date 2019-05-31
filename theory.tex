@@ -18,7 +18,7 @@ Een state beschrijft de toestand waarin een systeem zich bevindt. In het geval d
 
 \textbf{World vs. machine:} 
 \\
-Er kan onderscheid worden gemaakt tussen de fenomenen die zich bevinden in de wereld buiten het systeem en de fenomenen die alleen in het systeem zelf bestaan. \\\\
+Er kan onderscheid worden gemaakt tussen de fenomenen die zich bevinden in de wereld buiten het systeem en de fenomenen die alleen in het systeem zelf bestaan. Deze verschillen verschilt voor elke machine, het hangt volledig af van welke inputs en outputs de machine heeft. Een simpele voorbeeld van wereldse fenomeen is het temperatuur en een fenomeen die alleen in het machine bestaat is het programma waar het machine op functioneert. \\\\
 \textbf{4 variabelen methode:}
 \\
 Modellen voor computer systemen gebruiken vaak antropomorfisme analogie en intuïtieve conclusies wat tot lager precisie kan leiden. Het vier variabelen model helpt om software vereisten met groter precisie vast te stellen, door deze te modelleren op een manier zoals vaak door ingenieurs wordt toegepast. \cite{parnas1995functional} 
@@ -34,19 +34,16 @@ Zoals de naam suggereert bestaat het vier variabelen model uit vier onderdelen. 
 \end{figure}
 
 \subsection{Tijd}
-In Uppaal wordt tijd globaal op hetzelfde tempo bijgehouden. Tijd wordt in klokken bijgehouden en kan op elk moment worden uitgelezen of gereset. \cite{uppaalsmalltutorial}
+In Uppaal wordt tijd globaal op hetzelfde tempo bijgehouden. Tijd wordt in klokken bijgehouden en kan op elk moment worden uitgelezen of gereset. Tijd in uppaal heeft geen vaste eenheid en er kunnen verschillende eenheden toegewezen worden zolang het wek consistent word uitgevoerd. \cite{uppaalsmalltutorial}
 \subsection{Guards en invarianten}
-Guards zijn condities die op transities worden geplaatst, aan deze condities moet worden voldaan voordat deze transitie mogelijk is.\cite{uppaalsmalltutorial}
-
-
-guards condities op transities, 
+Guards zijn condities die op transities worden geplaatst, aan deze condities moet worden voldaan voordat deze transitie mogelijk is. Een van de vele condities die je kan definiëren is het verstrijken van een bepaalde eenheid tijd voordat het die transitie mag aan ingaan. \cite{uppaalsmalltutorial}
 
 \subsection{Deadlock} \label{deadlock}
 
-Een deadlock is een situatie waarin er nooit meer verdere state transities mogelijke zijn \cite{uppaalintro}.
+Een deadlock is een situatie waarin er nooit meer verdere state transities mogelijke zijn. Dit zorgt ervoor dat het systeem volledig stil staat en niks meer kan doen. Deadlocks kunnen ontstaan door door bepaalde condities te definiëren die het systeem niet kan waarmaken \cite{uppaalintro}.
 
 \subsection{Zeno gedrag} \label{zenobehavior}
-Wanneer een model een oneindig aantal transities kan maken in een bepaalde tijd dat wordt er gesproken van zeno gedrag \cite{uppaaltutorialmodelingpatterns} \cite{leine2011zeno}.
+Wanneer een model een oneindig aantal transities kan maken in een bepaalde tijd dat wordt er gesproken van zeno gedrag. \cite{uppaaltutorialmodelingpatterns} \cite{leine2011zeno}.
 
 \subsection{Waterniveau}
 
