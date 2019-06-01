@@ -1,0 +1,1563 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+const int N = 5 ;
+typedef int[0,N] id_s; 
+//chan arrive[id_s];
+chan arrive;
+
+
+//boat priority, used to determine which gate to open and what water level the pumps need to reach
+bool isLeftGateFirst = false;
+
+const int waterLvMin = 1;
+const int waterLvMax = 3;
+
+//elements are integers between 0 and 10, custom data type, used for stack
+typedef int[0,1] id_e;
+typedef int[0,3] gateState;//0, 1, 2, 3 = closed, opening..., open, closing...
+//we have three water levels, can be expanded if needed
+typedef int[waterLvMin,waterLvMax] level;
+
+//waterlevels
+level waterLevelLeft;
+level waterLevelLockChamber;
+level waterLevelRight;
+
+//gates
+gateState leftGateState = 0;  //closed
+gateState rightGateState = 0; //closed
+id_e gateObstruction = false;
+
+//lights
+id_e greenlightLeft = 0;
+id_e redlightLeft = 1;
+id_e greenlightRight = 0;
+id_e redlightRight = 1;
+
+
+//info:
+/*
+//12 meter verschil max
+//20 cm verschil minimum
+//pompen gooien er alleen water bij
+
+*/
+
+//broadcast chan druk;//broadcast may be useful as emergency button
+chan druk;
+chan arrival;
+
+chan request[int[0,1]];
+chan start;
+chan done;
+
+chan pumpIn, pumpOut, pumpOff;
+chan pump_in, pump_out, pump_off, pump_on, pump_idle;
+
+chan openLeft, closeLeft, openRight, closeRight;
+
+//stack grootte
+const int size = 2;
+
+//stack pointer to current element
+int[0,size] head=0;
+//------------------------------
+// The boats stack
+//------------------------------
+
+//id_e boatsInQueue[size];//boatsInQueue[0] is left side, boatsInQueue[1] is right side
+
+id_e boatsInQueueLeft = 0;
+id_e boatsInQueueRight = 0;
+id_e boatsInQueueLockChamber = 0;
+
+
+//stack push
+void push(id_e e)
+{
+    //if(head==size){
+      //  head=0;
+    //}
+
+    //if(e == 1){//prevent boats from leaving
+        if(e==0){
+            boatsInQueueLeft = 1;
+        } else {
+            boatsInQueueRight = 1;
+        }
+    //}
+
+    //head++;
+}</declaration>
+	<template>
+		<name>leftGate</name>
+		<location id="id0" x="-399" y="-34">
+			<name x="-409" y="-68">closing</name>
+		</location>
+		<location id="id1" x="-578" y="-34">
+			<name x="-588" y="-68">open</name>
+		</location>
+		<location id="id2" x="-748" y="-34">
+			<name x="-758" y="-68">opening</name>
+		</location>
+		<location id="id3" x="-918" y="-34">
+			<name x="-928" y="-68">closed</name>
+		</location>
+		<init ref="id3"/>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id3"/>
+			<nail x="-442" y="34"/>
+			<nail x="-884" y="34"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="-535" y="-59">closeLeft?</label>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id1"/>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="-875" y="-59">openLeft?</label>
+		</transition>
+	</template>
+	<template>
+		<name>rightGate</name>
+		<location id="id4" x="-399" y="-34">
+			<name x="-409" y="-68">Closing</name>
+		</location>
+		<location id="id5" x="-578" y="-34">
+			<name x="-588" y="-68">Open</name>
+		</location>
+		<location id="id6" x="-748" y="-34">
+			<name x="-758" y="-68">Opening</name>
+		</location>
+		<location id="id7" x="-918" y="-34">
+			<name x="-928" y="-68">Closed</name>
+		</location>
+		<init ref="id7"/>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id7"/>
+			<nail x="-442" y="34"/>
+			<nail x="-884" y="34"/>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id4"/>
+			<label kind="synchronisation" x="-535" y="-59">closeRight?</label>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id5"/>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id6"/>
+			<label kind="synchronisation" x="-875" y="-59">openRight?</label>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">Main</name>
+		<declaration>//------------------------------
+// Variables
+//------------------------------
+
+//activate pump?
+bool activatePump = false;
+bool shouldWaterLevelBeRaised = false; //if true water will be lowered
+
+//boat priority, used to determine which gate to open and what water level the pumps need to reach
+//bool isLeftGateFirst = false;
+
+
+//empty stack completely
+void emptyStack()
+{
+    head = 0;
+
+    //boats in queue move to lockchamber
+    if(isLeftGateFirst){
+        boatsInQueueLeft = 0;
+    } else {
+        boatsInQueueRight = 0;
+    }
+
+    boatsInQueueLockChamber = 1;//moves boats to lockchamber
+}
+
+//boats leaving lockchamber
+void emptyLockChamberQueue(){
+    boatsInQueueLockChamber = 0;
+}
+
+//any boats at the sluice?
+bool isEmpty()
+{
+    if (boatsInQueueLeft==0&amp;&amp;boatsInQueueRight==0){
+        return true;
+    }
+    return false;
+}
+
+/*end stack*/
+
+//------------------------------
+// Initialize
+//------------------------------
+
+void initialize(){
+    waterLevelLeft = 3;
+    waterLevelLockChamber = 2;
+    waterLevelRight = 1;
+}
+
+//impossibility has occured reset all variables to default
+//causes of emergency:
+//both gates are open at the same time
+//-
+void emergencyReset(){
+    activatePump = false;
+    shouldWaterLevelBeRaised = false;
+    leftGateState = 0;
+    rightGateState = 0;
+    gateObstruction = false;
+    greenlightLeft = 0;
+    redlightLeft = 1;
+    greenlightRight = 0;
+    redlightRight = 1;
+}
+
+/*end initialize*/
+
+//------------------------------
+// Lock Chamber
+//------------------------------
+
+//raise water level
+void fillLockChamber(){ 
+    if(waterLevelLockChamber != waterLvMax){  //just in case check to see if we don't go out of defined integer range
+        waterLevelLockChamber = waterLevelLockChamber+1;
+    }
+}
+
+//lower water level
+void emptyLockChamber(){
+    if(waterLevelLockChamber != waterLvMin){ //just in case check to see if we don't go out of defined integer range
+        waterLevelLockChamber = waterLevelLockChamber-1;
+    }
+}
+
+//check if water level higher/lower than LEFT side
+bool waterLevelCheckLeftSame(){
+    if(waterLevelLeft == waterLevelLockChamber){
+        return false;//keep level
+    } else if(waterLevelLeft &lt; waterLevelLockChamber){
+        shouldWaterLevelBeRaised = false;
+    } else if(waterLevelLeft &gt; waterLevelLockChamber){
+        shouldWaterLevelBeRaised = true;
+    }
+    return true;
+}
+
+//check if water level higher/lower than RIGHT side
+bool waterLevelCheckRightSame(){
+    if(waterLevelRight == waterLevelLockChamber){
+        return false;//keep level
+    } else if(waterLevelRight &lt; waterLevelLockChamber){
+        shouldWaterLevelBeRaised = false;
+    } else if(waterLevelRight &gt; waterLevelLockChamber){
+        shouldWaterLevelBeRaised = true;
+    }
+    return true;
+}
+
+//decides which que of boats is going trough the sluice first
+void passRequestPriority(){ 
+    activatePump = false;
+    if(boatsInQueueLeft==1&amp;&amp;boatsInQueueRight==1){//Give priority to left
+        activatePump = waterLevelCheckLeftSame();
+        isLeftGateFirst = true;
+    } else if(boatsInQueueLeft==1&amp;&amp;boatsInQueueRight==0){//Priority to left
+        activatePump = waterLevelCheckLeftSame();
+        isLeftGateFirst = true;
+    } else if(boatsInQueueLeft==0&amp;&amp;boatsInQueueRight==1){//Priority to Right
+        activatePump = waterLevelCheckRightSame();
+        isLeftGateFirst = false;
+    }
+}
+
+//inference for waterlevel
+void passRequestPriorityLockChamber(){ 
+    activatePump = false;
+    if(isLeftGateFirst){
+        activatePump = waterLevelCheckRightSame();
+    } else {
+        activatePump = waterLevelCheckLeftSame();
+    }
+}
+
+bool activateThePump(){
+    return activatePump;
+}
+
+bool raiseWaterLv(){
+    return shouldWaterLevelBeRaised;
+}
+
+bool lockChamberOccupied(){
+    return boatsInQueueLockChamber;
+}
+
+/*end lock chamber*/
+
+//------------------------------
+// Gates
+//------------------------------
+
+//gate states: 0-&gt;1-&gt;2-&gt;3 = closed-&gt;opening...-&gt;opened-&gt;closing...
+void updateGateStatePrime(){
+    //if priority is for the left gate open it, otherwise open right gate
+    if(isLeftGateFirst){
+        (leftGateState != 3) ? leftGateState++ : leftGateState = 0;
+    } else {
+        (rightGateState != 3) ? rightGateState++ : rightGateState = 0;
+    }
+}
+
+void updateGateStateSec(){
+    //if priority was for the left gate open it, otherwise open right gate
+    if(!isLeftGateFirst){
+        (leftGateState != 3) ? leftGateState++ : leftGateState = 0;
+    } else {
+        (rightGateState != 3) ? rightGateState++ : rightGateState = 0;
+    }
+}
+
+//see if there are any obstruction in between the gate doors
+void obstructionDetect(id_e e)
+{
+    gateObstruction = e;
+}
+
+int gateObstructed(){
+    return gateObstruction;
+}
+
+//simulate gate malfunction
+void gateError(id_e e)
+{
+    if(e == 1){
+        if(leftGateState == 0 or leftGateState == 1){
+            rightGateState = 1;
+        } else {
+            leftGateState = 1;
+        }
+    }
+}
+
+//check to see if both gates are open and/or opening...
+bool areBothGatesOpen(){
+    if(leftGateState == 1 and rightGateState == 1 or leftGateState == 1 and rightGateState == 2 or leftGateState == 2 and rightGateState == 1 or leftGateState == 2 and rightGateState == 2){
+        return true;
+    }
+    return false;
+}
+
+/*end gates*/
+
+//------------------------------
+// Lights
+//------------------------------
+
+void updateLightsPrime(){
+    //check to see from which side the boats want to enter, then turn on/off the light for that side
+    if(isLeftGateFirst){
+        if(redlightLeft){
+            redlightLeft = 0;
+            greenlightLeft = 1;
+        } else{
+            redlightLeft = 1;
+            greenlightLeft = 0;
+        }
+    } else{
+        if(redlightRight){
+            redlightRight = 0;
+            greenlightRight = 1;
+        } else{
+            redlightRight = 1;
+            greenlightRight = 0;
+        }
+    }
+}
+
+void updateLightsSec(){
+    //boats just left lockchamber see if any boats want to enter while the gates are still open
+    if(boatsInQueueLeft || boatsInQueueRight == 1){
+        if(!isLeftGateFirst){
+            if(redlightLeft){
+                redlightLeft = 0;
+                greenlightLeft = 1;
+            } else{
+                redlightLeft = 1;
+                greenlightLeft = 0;
+            }
+        } else{
+            if(redlightRight){
+                redlightRight = 0;
+                greenlightRight = 1;
+            } else{
+                redlightRight = 1;
+                greenlightRight = 0;
+            }
+        }
+
+        //store from which side the boats came
+        if(boatsInQueueLeft == 1){
+            isLeftGateFirst = false;
+        }
+        if(boatsInQueueRight == 1){
+            isLeftGateFirst = true;
+        }
+
+        boatsInQueueLeft = 0;
+        boatsInQueueRight = 0;
+        boatsInQueueLockChamber = 1;
+    }
+}
+
+/*end lights*/</declaration>
+		<location id="id8" x="85" y="8">
+		</location>
+		<location id="id9" x="578" y="170">
+			<name x="544" y="187">Emergency</name>
+		</location>
+		<location id="id10" x="578" y="-238">
+			<name x="484" y="-289">sensorSluiceOutgoingBoatClear</name>
+		</location>
+		<location id="id11" x="748" y="-238">
+			<name x="654" y="-272">lightsInsideOutgoingRed</name>
+		</location>
+		<location id="id12" x="901" y="-238">
+			<name x="824" y="-289">lightsInsideOutgoingGreen</name>
+		</location>
+		<location id="id13" x="1054" y="-238">
+			<name x="986" y="-272">sluiceOutgoingOpen</name>
+		</location>
+		<location id="id14" x="1224" y="-238">
+			<name x="1139" y="-272">sluiceOutgoingOpening</name>
+		</location>
+		<location id="id15" x="1394" y="-119">
+			<name x="1326" y="-153">sluiceIncomingClosed</name>
+		</location>
+		<location id="id16" x="1394" y="0">
+			<name x="1326" y="-42">sluiceIncomingClosing</name>
+		</location>
+		<location id="id17" x="1224" y="0">
+			<name x="1096" y="-34">sensorSluiceIncomingBoatClear</name>
+		</location>
+		<location id="id18" x="748" y="0">
+			<name x="688" y="-42">sluiceIncomingOpen</name>
+		</location>
+		<location id="id19" x="374" y="-238">
+			<name x="364" y="-272">sluiceOutgoingClosing</name>
+		</location>
+		<location id="id20" x="170" y="-238">
+			<name x="93" y="-272">sluiceOutgoingClosed</name>
+		</location>
+		<location id="id21" x="340" y="-136">
+			<name x="306" y="-170">pumpFill</name>
+		</location>
+		<location id="id22" x="340" y="136">
+			<name x="246" y="127">pumpEmpty</name>
+		</location>
+		<location id="id23" x="340" y="0">
+			<name x="289" y="-34">waterLevelCheck</name>
+		</location>
+		<location id="id24" x="1054" y="0">
+			<name x="969" y="-51">lightsIncomingOutsideRed</name>
+		</location>
+		<location id="id25" x="170" y="170">
+			<name x="145" y="136">startUp</name>
+			<committed/>
+		</location>
+		<location id="id26" x="901" y="0">
+			<name x="833" y="-34">lightsIncomingOutsideGreen</name>
+		</location>
+		<location id="id27" x="578" y="0">
+			<name x="510" y="-25">sluiceIncomingOpening</name>
+		</location>
+		<location id="id28" x="170" y="0">
+			<name x="178" y="-34">idle</name>
+			<urgent/>
+		</location>
+		<location id="id29" x="1394" y="-374">
+			<name x="1360" y="-408">pumpFill2</name>
+		</location>
+		<location id="id30" x="1394" y="-238">
+			<name x="1334" y="-272">waterLevelCheck2</name>
+		</location>
+		<location id="id31" x="1598" y="-238">
+			<name x="1606" y="-229">pumpEmpty2</name>
+		</location>
+		<init ref="id8"/>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id23"/>
+			<label kind="assignment" x="256" y="170">emergencyReset()</label>
+			<nail x="238" y="170"/>
+			<nail x="238" y="68"/>
+		</transition>
+		<transition>
+			<source ref="id25"/>
+			<target ref="id28"/>
+			<label kind="assignment" x="136" y="76">initialize()</label>
+			<nail x="170" y="102"/>
+		</transition>
+		<transition>
+			<source ref="id13"/>
+			<target ref="id9"/>
+			<label kind="guard" x="1054" y="-476">areBothGatesOpen()</label>
+			<nail x="1054" y="-442"/>
+			<nail x="1700" y="-442"/>
+			<nail x="1700" y="170"/>
+		</transition>
+		<transition>
+			<source ref="id14"/>
+			<target ref="id9"/>
+			<label kind="guard" x="1224" y="-476">areBothGatesOpen()</label>
+			<nail x="1224" y="-442"/>
+			<nail x="1700" y="-442"/>
+			<nail x="1700" y="170"/>
+		</transition>
+		<transition>
+			<source ref="id18"/>
+			<target ref="id9"/>
+			<label kind="guard" x="688" y="110">areBothGatesOpen()</label>
+			<nail x="748" y="170"/>
+		</transition>
+		<transition>
+			<source ref="id27"/>
+			<target ref="id9"/>
+			<label kind="guard" x="527" y="110">areBothGatesOpen()</label>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id11"/>
+			<label kind="guard" x="612" y="-170">gateObstructed()</label>
+			<nail x="612" y="-170"/>
+			<nail x="714" y="-170"/>
+		</transition>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id24"/>
+			<label kind="guard" x="1088" y="68">gateObstructed()</label>
+			<nail x="1190" y="68"/>
+			<nail x="1088" y="68"/>
+		</transition>
+		<transition>
+			<source ref="id20"/>
+			<target ref="id23"/>
+			<label kind="guard" x="178" y="-127">lockChamberOccupied()</label>
+		</transition>
+		<transition>
+			<source ref="id21"/>
+			<target ref="id23"/>
+			<label kind="assignment" x="433" y="-102">passRequestPriority()</label>
+			<nail x="476" y="-136"/>
+			<nail x="476" y="-34"/>
+		</transition>
+		<transition>
+			<source ref="id22"/>
+			<target ref="id23"/>
+			<label kind="assignment" x="374" y="110">passRequestPriority()</label>
+			<nail x="476" y="136"/>
+			<nail x="476" y="34"/>
+		</transition>
+		<transition>
+			<source ref="id23"/>
+			<target ref="id27"/>
+			<label kind="select" x="408" y="0">e:id_e</label>
+			<label kind="guard" x="408" y="17">!activateThePump()</label>
+			<label kind="assignment" x="408" y="34">updateGateStatePrime(),
+gateError(e)</label>
+		</transition>
+		<transition>
+			<source ref="id20"/>
+			<target ref="id28"/>
+			<label kind="guard" x="42" y="-170">!lockChamberOccupied()</label>
+			<label kind="synchronisation" x="119" y="-153">done!</label>
+		</transition>
+		<transition>
+			<source ref="id19"/>
+			<target ref="id20"/>
+			<label kind="assignment" x="195" y="-238">updateGateStateSec()</label>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id19"/>
+			<label kind="guard" x="399" y="-238">!gateObstructed()</label>
+			<label kind="assignment" x="399" y="-221">updateGateStateSec()</label>
+		</transition>
+		<transition>
+			<source ref="id11"/>
+			<target ref="id10"/>
+			<label kind="select" x="637" y="-238">e:id_e</label>
+			<label kind="assignment" x="595" y="-221">obstructionDetect(e)</label>
+		</transition>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id11"/>
+			<label kind="assignment" x="765" y="-238">updateLightsSec()</label>
+		</transition>
+		<transition>
+			<source ref="id13"/>
+			<target ref="id12"/>
+			<label kind="guard" x="918" y="-238">!areBothGatesOpen()</label>
+			<label kind="assignment" x="918" y="-221">updateLightsSec()</label>
+		</transition>
+		<transition>
+			<source ref="id14"/>
+			<target ref="id13"/>
+			<label kind="select" x="1062" y="-221">e:id_e</label>
+			<label kind="guard" x="1062" y="-204">!areBothGatesOpen()</label>
+			<label kind="assignment" x="1062" y="-187">updateGateStateSec(),
+emptyLockChamberQueue(),
+gateError(e)</label>
+		</transition>
+		<transition>
+			<source ref="id30"/>
+			<target ref="id14"/>
+			<label kind="select" x="1241" y="-238">e:id_e</label>
+			<label kind="guard" x="1241" y="-221">!activateThePump()</label>
+			<label kind="assignment" x="1241" y="-204">updateGateStateSec(),
+gateError(e)</label>
+		</transition>
+		<transition>
+			<source ref="id15"/>
+			<target ref="id30"/>
+			<label kind="assignment" x="1275" y="-170">passRequestPriorityLockChamber()</label>
+		</transition>
+		<transition>
+			<source ref="id16"/>
+			<target ref="id15"/>
+			<label kind="assignment" x="1334" y="-76">updateGateStatePrime()</label>
+		</transition>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id16"/>
+			<label kind="guard" x="1266" y="0">!gateObstructed()</label>
+			<label kind="assignment" x="1266" y="17">emptyStack(),
+updateGateStatePrime()</label>
+		</transition>
+		<transition>
+			<source ref="id24"/>
+			<target ref="id17"/>
+			<label kind="select" x="1122" y="0">e:id_e</label>
+			<label kind="assignment" x="1071" y="17">obstructionDetect(e)</label>
+		</transition>
+		<transition>
+			<source ref="id18"/>
+			<target ref="id26"/>
+			<label kind="guard" x="765" y="0">!areBothGatesOpen()</label>
+			<label kind="assignment" x="765" y="17">updateLightsPrime()</label>
+		</transition>
+		<transition>
+			<source ref="id26"/>
+			<target ref="id24"/>
+			<label kind="assignment" x="919" y="0">updateLightsPrime()</label>
+		</transition>
+		<transition>
+			<source ref="id23"/>
+			<target ref="id22"/>
+			<label kind="guard" x="280" y="42">!raiseWaterLv() &amp;&amp;
+activateThePump()</label>
+			<label kind="assignment" x="280" y="76">emptyLockChamber()</label>
+		</transition>
+		<transition>
+			<source ref="id23"/>
+			<target ref="id21"/>
+			<label kind="guard" x="297" y="-102">raiseWaterLv() &amp;&amp;
+activateThePump()</label>
+			<label kind="assignment" x="297" y="-68">fillLockChamber()</label>
+		</transition>
+		<transition>
+			<source ref="id28"/>
+			<target ref="id23"/>
+			<label kind="synchronisation" x="204" y="25">start?</label>
+			<label kind="assignment" x="187" y="8">passRequestPriority()</label>
+		</transition>
+		<transition>
+			<source ref="id27"/>
+			<target ref="id18"/>
+			<label kind="select" x="595" y="0">e:id_e</label>
+			<label kind="guard" x="595" y="17">!areBothGatesOpen()</label>
+			<label kind="assignment" x="595" y="34">updateGateStatePrime(),
+gateError(e)</label>
+		</transition>
+		<transition>
+			<source ref="id29"/>
+			<target ref="id30"/>
+			<label kind="assignment" x="1445" y="-374">passRequestPriorityLockChamber()</label>
+			<nail x="1598" y="-374"/>
+			<nail x="1598" y="-272"/>
+		</transition>
+		<transition>
+			<source ref="id31"/>
+			<target ref="id30"/>
+			<label kind="assignment" x="1496" y="-161">passRequestPriorityLockChamber()</label>
+			<nail x="1598" y="-136"/>
+			<nail x="1428" y="-136"/>
+		</transition>
+		<transition>
+			<source ref="id30"/>
+			<target ref="id31"/>
+			<label kind="guard" x="1453" y="-255">!raiseWaterLv() &amp;&amp;
+activateThePump()</label>
+			<label kind="assignment" x="1428" y="-221">emptyLockChamber()</label>
+		</transition>
+		<transition>
+			<source ref="id30"/>
+			<target ref="id29"/>
+			<label kind="guard" x="1343" y="-340">raiseWaterLv() &amp;&amp;
+activateThePump()</label>
+			<label kind="assignment" x="1343" y="-306">fillLockChamber()</label>
+		</transition>
+	</template>
+	<template>
+		<name>MainNew</name>
+		<declaration>//------------------------------
+// Variables
+//------------------------------
+
+//activate pump?
+bool activatePump = false;
+bool shouldWaterLevelBeRaised = false; //if true water will be lowered
+
+
+
+
+//empty stack completely
+void emptyStack()
+{
+    head = 0;
+
+    //boats in queue move to lockchamber
+    if(isLeftGateFirst){
+        boatsInQueueLeft = 0;
+    } else {
+        boatsInQueueRight = 0;
+    }
+
+    boatsInQueueLockChamber = 1;//moves boats to lockchamber
+}
+
+//boats leaving lockchamber
+void emptyLockChamberQueue(){
+    boatsInQueueLockChamber = 0;
+}
+
+//any boats at the sluice?
+bool isEmpty()
+{
+    if (boatsInQueueLeft==0&amp;&amp;boatsInQueueRight==0){
+        return true;
+    }
+    return false;
+}
+
+/*end stack*/
+
+//------------------------------
+// Initialize
+//------------------------------
+
+//set water levels
+void initialize(){
+    waterLevelLeft = 3;
+    waterLevelLockChamber = 2;
+    waterLevelRight = 1;
+}
+
+//impossibility has occured reset all variables to default
+//causes of emergency:
+//both gates are open at the same time
+//-
+void emergencyReset(){
+    activatePump = false;
+    shouldWaterLevelBeRaised = false;
+    leftGateState = 0;
+    rightGateState = 0;
+    gateObstruction = false;
+    greenlightLeft = 0;
+    redlightLeft = 1;
+    greenlightRight = 0;
+    redlightRight = 1;
+}
+
+/*end initialize*/
+
+//------------------------------
+// Lock Chamber
+//------------------------------
+
+//raise water level
+void fillLockChamber(){ 
+    if(waterLevelLockChamber != waterLvMax){  //just in case check to see if we don't go out of defined integer range
+        waterLevelLockChamber = waterLevelLockChamber+1;
+    }
+}
+
+//lower water level
+void emptyLockChamber(){
+    if(waterLevelLockChamber != waterLvMin){ //just in case check to see if we don't go out of defined integer range
+        waterLevelLockChamber = waterLevelLockChamber-1;
+    }
+}
+
+//check if water level higher/lower than LEFT side
+bool waterLevelCheckLeftSame(){
+    if(waterLevelLeft == waterLevelLockChamber){
+        return false;//keep level
+    } else if(waterLevelLeft &lt; waterLevelLockChamber){
+        shouldWaterLevelBeRaised = false;
+    } else if(waterLevelLeft &gt; waterLevelLockChamber){
+        shouldWaterLevelBeRaised = true;
+    }
+    return true;
+}
+
+//check if water level higher/lower than RIGHT side
+bool waterLevelCheckRightSame(){
+    if(waterLevelRight == waterLevelLockChamber){
+        return false;//keep level
+    } else if(waterLevelRight &lt; waterLevelLockChamber){
+        shouldWaterLevelBeRaised = false;
+    } else if(waterLevelRight &gt; waterLevelLockChamber){
+        shouldWaterLevelBeRaised = true;
+    }
+    return true;
+}
+
+//decides which que of boats is going trough the sluice first, left or right?
+void passRequestPriority(){ 
+    activatePump = false;
+    if(boatsInQueueLeft==1&amp;&amp;boatsInQueueRight==1){//Give priority to left gate
+        activatePump = waterLevelCheckLeftSame();
+        isLeftGateFirst = true;
+    } else if(boatsInQueueLeft==1&amp;&amp;boatsInQueueRight==0){//Priority to left gate
+        activatePump = waterLevelCheckLeftSame();
+        isLeftGateFirst = true;
+    } else if(boatsInQueueLeft==0&amp;&amp;boatsInQueueRight==1){//Priority to right gate
+        activatePump = waterLevelCheckRightSame();
+        isLeftGateFirst = false;
+    }
+}
+
+//inference for waterlevel
+void passRequestPriorityLockChamber(){ 
+    activatePump = false;
+    if(isLeftGateFirst){
+        activatePump = waterLevelCheckRightSame();
+    } else {
+        activatePump = waterLevelCheckLeftSame();
+    }
+}
+
+//inference for waterlevel
+void IsLockChamberWaterLvOk(){ 
+    activatePump = false;
+    if(isLeftGateFirst){
+        activatePump = waterLevelCheckLeftSame();
+    } else {
+        activatePump = waterLevelCheckRightSame();
+    }
+}
+
+bool activateThePump(){
+    return activatePump;
+}
+
+bool raiseWaterLv(){
+    return shouldWaterLevelBeRaised;
+}
+
+bool lockChamberOccupied(){
+    return boatsInQueueLockChamber;
+}
+
+bool gatePriority(){
+    return isLeftGateFirst;
+}
+
+/*end lock chamber*/
+
+//------------------------------
+// Gates
+//------------------------------
+
+//gate states: 0-&gt;1-&gt;2-&gt;3 = closed-&gt;opening...-&gt;opened-&gt;closing...
+void updateGateStatePrime(){
+    //if priority is for the left gate open it, otherwise open right gate
+    if(isLeftGateFirst){
+        (leftGateState != 3) ? leftGateState++ : leftGateState = 0;
+    } else {
+        (rightGateState != 3) ? rightGateState++ : rightGateState = 0;
+    }
+}
+
+void updateGateStateSec(){
+    //if priority was for the left gate open it, otherwise open right gate
+    if(!isLeftGateFirst){
+        (leftGateState != 3) ? leftGateState++ : leftGateState = 0;
+    } else {
+        (rightGateState != 3) ? rightGateState++ : rightGateState = 0;
+    }
+}
+
+//see if there are any obstruction in between the gate doors
+void obstructionDetect(id_e e)
+{
+    gateObstruction = e;
+}
+
+int gateObstructed(){
+    return gateObstruction;
+}
+
+//simulate gate malfunction
+void gateError(id_e e)
+{
+    if(e == 1){
+        if(leftGateState == 0 or leftGateState == 1){
+            rightGateState = 1;
+        } else {
+            leftGateState = 1;
+        }
+    }
+}
+
+//check to see if both gates are open and/or opening...
+bool areBothGatesOpen(){
+    if(leftGateState == 1 and rightGateState == 1 or leftGateState == 1 and rightGateState == 2 or leftGateState == 2 and rightGateState == 1 or leftGateState == 2 and rightGateState == 2){
+        return true;
+    }
+    return false;
+}
+
+/*end gates*/
+
+//------------------------------
+// Lights
+//------------------------------
+
+void updateLightsPrime(){
+    //check to see from which side the boats want to enter, then turn on/off the light for that side
+    if(isLeftGateFirst){
+        if(redlightLeft){
+            redlightLeft = 0;
+            greenlightLeft = 1;
+        } else{
+            redlightLeft = 1;
+            greenlightLeft = 0;
+        }
+    } else{
+        if(redlightRight){
+            redlightRight = 0;
+            greenlightRight = 1;
+        } else{
+            redlightRight = 1;
+            greenlightRight = 0;
+        }
+    }
+}
+
+void updateLightsSec(){
+    //boats just left lockchamber see if any boats want to enter while the gates are still open
+    if(boatsInQueueLeft || boatsInQueueRight == 1){
+        if(!isLeftGateFirst){
+            if(redlightLeft){
+                redlightLeft = 0;
+                greenlightLeft = 1;
+            } else{
+                redlightLeft = 1;
+                greenlightLeft = 0;
+            }
+        } else{
+            if(redlightRight){
+                redlightRight = 0;
+                greenlightRight = 1;
+            } else{
+                redlightRight = 1;
+                greenlightRight = 0;
+            }
+        }
+
+        //store from which side the boats came
+        if(boatsInQueueLeft == 1){
+            isLeftGateFirst = false;
+        }
+        if(boatsInQueueRight == 1){
+            isLeftGateFirst = true;
+        }
+
+        boatsInQueueLeft = 0;
+        boatsInQueueRight = 0;
+        boatsInQueueLockChamber = 1;
+    }
+}
+
+/*end lights*/</declaration>
+		<location id="id32" x="-3672" y="-4386">
+		</location>
+		<location id="id33" x="-3808" y="-4454">
+			<name x="-3825" y="-4488">closeLeftGate</name>
+		</location>
+		<location id="id34" x="-3808" y="-4318">
+			<name x="-3825" y="-4301">closeRightGate</name>
+		</location>
+		<location id="id35" x="-3978" y="-4318">
+			<name x="-4003" y="-4301">openRightGate</name>
+		</location>
+		<location id="id36" x="-3978" y="-4454">
+			<name x="-4003" y="-4488">openLeftGate</name>
+		</location>
+		<location id="id37" x="-4114" y="-4386">
+			<name x="-4124" y="-4420">GateSelect</name>
+		</location>
+		<location id="id38" x="-4105" y="-4624">
+			<name x="-4199" y="-4675">sensorSluiceOutgoingBoatClear</name>
+		</location>
+		<location id="id39" x="-3935" y="-4624">
+			<name x="-4029" y="-4658">lightsInsideOutgoingRed</name>
+		</location>
+		<location id="id40" x="-3782" y="-4624">
+			<name x="-3859" y="-4675">lightsInsideOutgoingGreen</name>
+		</location>
+		<location id="id41" x="-3629" y="-4624">
+			<name x="-3697" y="-4658">sluiceOutgoingOpen</name>
+		</location>
+		<location id="id42" x="-3459" y="-4624">
+			<name x="-3544" y="-4658">sluiceOutgoingOpening</name>
+		</location>
+		<location id="id43" x="-3289" y="-4505">
+			<name x="-3357" y="-4539">sluiceIncomingClosed</name>
+		</location>
+		<location id="id44" x="-3289" y="-4386">
+			<name x="-3357" y="-4428">sluiceIncomingClosing</name>
+		</location>
+		<location id="id45" x="-2703" y="-4259">
+			<name x="-2831" y="-4293">sensorSluiceIncomingBoatClear</name>
+		</location>
+		<location id="id46" x="-3179" y="-4259">
+			<name x="-3239" y="-4301">sluiceIncomingOpen</name>
+		</location>
+		<location id="id47" x="-4309" y="-4624">
+			<name x="-4319" y="-4658">sluiceOutgoingClosing</name>
+		</location>
+		<location id="id48" x="-4513" y="-4624">
+			<name x="-4590" y="-4658">sluiceOutgoingClosed</name>
+		</location>
+		<location id="id49" x="-4343" y="-4522">
+			<name x="-4377" y="-4556">pumpFill</name>
+		</location>
+		<location id="id50" x="-4343" y="-4250">
+			<name x="-4437" y="-4259">pumpEmpty</name>
+		</location>
+		<location id="id51" x="-4343" y="-4386">
+			<name x="-4394" y="-4420">waterLevelCheck</name>
+		</location>
+		<location id="id52" x="-2873" y="-4259">
+			<name x="-2958" y="-4310">lightsIncomingOutsideRed</name>
+		</location>
+		<location id="id53" x="-4513" y="-4216">
+			<name x="-4538" y="-4250">startUp</name>
+			<committed/>
+		</location>
+		<location id="id54" x="-3026" y="-4259">
+			<name x="-3094" y="-4293">lightsIncomingOutsideGreen</name>
+		</location>
+		<location id="id55" x="-3332" y="-4259">
+			<name x="-3400" y="-4284">sluiceIncomingOpening</name>
+		</location>
+		<location id="id56" x="-4513" y="-4386">
+			<name x="-4505" y="-4420">idle</name>
+			<urgent/>
+		</location>
+		<location id="id57" x="-3289" y="-4760">
+			<name x="-3323" y="-4794">pumpFill2</name>
+		</location>
+		<location id="id58" x="-3289" y="-4624">
+			<name x="-3349" y="-4658">waterLevelCheck2</name>
+		</location>
+		<location id="id59" x="-3085" y="-4624">
+			<name x="-3077" y="-4615">pumpEmpty2</name>
+		</location>
+		<init ref="id53"/>
+		<transition>
+			<source ref="id32"/>
+			<target ref="id55"/>
+		</transition>
+		<transition>
+			<source ref="id34"/>
+			<target ref="id32"/>
+			<label kind="synchronisation" x="-3774" y="-4360">closeRight!</label>
+		</transition>
+		<transition>
+			<source ref="id33"/>
+			<target ref="id32"/>
+			<label kind="synchronisation" x="-3774" y="-4428">closeLeft!</label>
+		</transition>
+		<transition>
+			<source ref="id35"/>
+			<target ref="id34"/>
+			<label kind="synchronisation" x="-3927" y="-4335">openRight!</label>
+		</transition>
+		<transition>
+			<source ref="id36"/>
+			<target ref="id33"/>
+			<label kind="synchronisation" x="-3927" y="-4471">openLeft!</label>
+		</transition>
+		<transition>
+			<source ref="id37"/>
+			<target ref="id35"/>
+			<label kind="guard" x="-4097" y="-4369">!gatePriority()</label>
+		</transition>
+		<transition>
+			<source ref="id37"/>
+			<target ref="id36"/>
+			<label kind="guard" x="-4097" y="-4445">gatePriority()</label>
+		</transition>
+		<transition>
+			<source ref="id53"/>
+			<target ref="id56"/>
+			<label kind="assignment" x="-4547" y="-4310">initialize()</label>
+			<nail x="-4513" y="-4284"/>
+		</transition>
+		<transition>
+			<source ref="id38"/>
+			<target ref="id39"/>
+			<label kind="guard" x="-4071" y="-4556">gateObstructed()</label>
+			<nail x="-4071" y="-4556"/>
+			<nail x="-3969" y="-4556"/>
+		</transition>
+		<transition>
+			<source ref="id45"/>
+			<target ref="id52"/>
+			<label kind="guard" x="-2839" y="-4191">gateObstructed()</label>
+			<nail x="-2737" y="-4191"/>
+			<nail x="-2839" y="-4191"/>
+		</transition>
+		<transition>
+			<source ref="id49"/>
+			<target ref="id51"/>
+			<label kind="assignment" x="-4199" y="-4488">IsLockChamberWaterLvOk()</label>
+			<nail x="-4207" y="-4522"/>
+			<nail x="-4207" y="-4420"/>
+		</transition>
+		<transition>
+			<source ref="id50"/>
+			<target ref="id51"/>
+			<label kind="assignment" x="-4301" y="-4250">IsLockChamberWaterLvOk()</label>
+			<nail x="-4207" y="-4250"/>
+			<nail x="-4207" y="-4352"/>
+		</transition>
+		<transition>
+			<source ref="id51"/>
+			<target ref="id37"/>
+			<label kind="guard" x="-4267" y="-4386">!activateThePump()</label>
+		</transition>
+		<transition>
+			<source ref="id48"/>
+			<target ref="id56"/>
+			<label kind="guard" x="-4641" y="-4556">!lockChamberOccupied()</label>
+			<label kind="synchronisation" x="-4564" y="-4539">done!</label>
+		</transition>
+		<transition>
+			<source ref="id47"/>
+			<target ref="id48"/>
+			<label kind="assignment" x="-4488" y="-4624">updateGateStateSec()</label>
+		</transition>
+		<transition>
+			<source ref="id38"/>
+			<target ref="id47"/>
+			<label kind="guard" x="-4284" y="-4624">!gateObstructed()</label>
+			<label kind="assignment" x="-4284" y="-4607">updateGateStateSec()</label>
+		</transition>
+		<transition>
+			<source ref="id39"/>
+			<target ref="id38"/>
+			<label kind="select" x="-4046" y="-4624">e:id_e</label>
+			<label kind="assignment" x="-4088" y="-4607">obstructionDetect(e)</label>
+		</transition>
+		<transition>
+			<source ref="id40"/>
+			<target ref="id39"/>
+			<label kind="assignment" x="-3918" y="-4624">updateLightsSec()</label>
+		</transition>
+		<transition>
+			<source ref="id41"/>
+			<target ref="id40"/>
+			<label kind="guard" x="-3765" y="-4624">!areBothGatesOpen()</label>
+			<label kind="assignment" x="-3765" y="-4607">updateLightsSec()</label>
+		</transition>
+		<transition>
+			<source ref="id42"/>
+			<target ref="id41"/>
+			<label kind="select" x="-3621" y="-4607">e:id_e</label>
+			<label kind="guard" x="-3621" y="-4590">!areBothGatesOpen()</label>
+			<label kind="assignment" x="-3621" y="-4573">updateGateStateSec(),
+emptyLockChamberQueue(),
+gateError(e)</label>
+		</transition>
+		<transition>
+			<source ref="id58"/>
+			<target ref="id42"/>
+			<label kind="select" x="-3442" y="-4624">e:id_e</label>
+			<label kind="guard" x="-3442" y="-4607">!activateThePump()</label>
+			<label kind="assignment" x="-3442" y="-4590">updateGateStateSec(),
+gateError(e)</label>
+		</transition>
+		<transition>
+			<source ref="id43"/>
+			<target ref="id58"/>
+			<label kind="assignment" x="-3408" y="-4556">passRequestPriorityLockChamber()</label>
+		</transition>
+		<transition>
+			<source ref="id44"/>
+			<target ref="id43"/>
+			<label kind="assignment" x="-3349" y="-4462">updateGateStatePrime()</label>
+		</transition>
+		<transition>
+			<source ref="id45"/>
+			<target ref="id44"/>
+			<label kind="guard" x="-2661" y="-4259">!gateObstructed()</label>
+			<label kind="assignment" x="-2661" y="-4242">emptyStack(),
+updateGateStatePrime()</label>
+		</transition>
+		<transition>
+			<source ref="id52"/>
+			<target ref="id45"/>
+			<label kind="select" x="-2805" y="-4259">e:id_e</label>
+			<label kind="assignment" x="-2856" y="-4242">obstructionDetect(e)</label>
+		</transition>
+		<transition>
+			<source ref="id46"/>
+			<target ref="id54"/>
+			<label kind="guard" x="-3162" y="-4259">!areBothGatesOpen()</label>
+			<label kind="assignment" x="-3162" y="-4242">updateLightsPrime()</label>
+		</transition>
+		<transition>
+			<source ref="id54"/>
+			<target ref="id52"/>
+			<label kind="assignment" x="-3008" y="-4259">updateLightsPrime()</label>
+		</transition>
+		<transition>
+			<source ref="id51"/>
+			<target ref="id50"/>
+			<label kind="guard" x="-4335" y="-4352">!raiseWaterLv()</label>
+			<label kind="synchronisation" x="-4335" y="-4335">pumpOut!</label>
+		</transition>
+		<transition>
+			<source ref="id51"/>
+			<target ref="id49"/>
+			<label kind="guard" x="-4335" y="-4488">raiseWaterLv()</label>
+			<label kind="synchronisation" x="-4335" y="-4471">pumpIn!</label>
+		</transition>
+		<transition>
+			<source ref="id56"/>
+			<target ref="id51"/>
+			<label kind="synchronisation" x="-4479" y="-4361">start?</label>
+			<label kind="assignment" x="-4496" y="-4378">passRequestPriority()</label>
+		</transition>
+		<transition>
+			<source ref="id55"/>
+			<target ref="id46"/>
+			<label kind="select" x="-3332" y="-4259">e:id_e</label>
+			<label kind="guard" x="-3332" y="-4242">!areBothGatesOpen()</label>
+			<label kind="assignment" x="-3332" y="-4225">updateGateStatePrime(),
+gateError(e)</label>
+		</transition>
+		<transition>
+			<source ref="id57"/>
+			<target ref="id58"/>
+			<label kind="assignment" x="-3238" y="-4760">passRequestPriorityLockChamber()</label>
+			<nail x="-3085" y="-4760"/>
+			<nail x="-3085" y="-4658"/>
+		</transition>
+		<transition>
+			<source ref="id59"/>
+			<target ref="id58"/>
+			<label kind="assignment" x="-3187" y="-4547">passRequestPriorityLockChamber()</label>
+			<nail x="-3085" y="-4522"/>
+			<nail x="-3255" y="-4522"/>
+		</transition>
+		<transition>
+			<source ref="id58"/>
+			<target ref="id59"/>
+			<label kind="guard" x="-3230" y="-4641">!raiseWaterLv() &amp;&amp;
+activateThePump()</label>
+			<label kind="assignment" x="-3255" y="-4607">emptyLockChamber()</label>
+		</transition>
+		<transition>
+			<source ref="id58"/>
+			<target ref="id57"/>
+			<label kind="guard" x="-3340" y="-4726">raiseWaterLv() &amp;&amp;
+activateThePump()</label>
+			<label kind="assignment" x="-3340" y="-4692">fillLockChamber()</label>
+		</transition>
+	</template>
+	<template>
+		<name>pump</name>
+		<declaration>
+
+void matchLockChamberWaterLevel(){
+    if(waterLevelLockChamber != waterLvMax &amp;&amp; waterLevelLockChamber != waterLvMin){  //just in case check to see if we don't go out of defined integer range
+        if(isLeftGateFirst){ //match waterlv to left side
+            waterLevelLockChamber = waterLevelLeft;
+        } else {             //match waterlv to right side
+            waterLevelLockChamber = waterLevelRight;
+        }
+    }
+}
+
+
+//raise water level
+void fillLockChamber(){ 
+    if(waterLevelLockChamber != waterLvMax){  //just in case check to see if we don't go out of defined integer range
+        if(isLeftGateFirst){ //match waterlv to left side
+            waterLevelLockChamber = waterLevelLeft;
+        } else { //match waterlv to right side
+            waterLevelLockChamber = waterLevelRight;
+        }
+    }
+}
+
+//lower water level
+void emptyLockChamber(){
+    if(waterLevelLockChamber != waterLvMin){ //just in case check to see if we don't go out of defined integer range
+        if(isLeftGateFirst){
+            waterLevelLockChamber = waterLevelLeft;
+        } else {
+            waterLevelLockChamber = waterLevelRight;
+        }
+    }
+}</declaration>
+		<location id="id60" x="-204" y="-34">
+			<name x="-238" y="-68">pumping_Out</name>
+		</location>
+		<location id="id61" x="-204" y="102">
+			<name x="-238" y="119">pumping_In</name>
+		</location>
+		<location id="id62" x="-442" y="34">
+			<name x="-510" y="0">pump_Off</name>
+		</location>
+		<init ref="id62"/>
+		<transition>
+			<source ref="id62"/>
+			<target ref="id61"/>
+			<label kind="synchronisation" x="-450" y="102">pumpIn?</label>
+			<label kind="assignment" x="-450" y="119">matchLockChamberWaterLevel()</label>
+			<nail x="-399" y="102"/>
+		</transition>
+		<transition>
+			<source ref="id62"/>
+			<target ref="id60"/>
+			<label kind="synchronisation" x="-442" y="-76">pumpOut?</label>
+			<label kind="assignment" x="-442" y="-59">matchLockChamberWaterLevel()</label>
+			<nail x="-408" y="-34"/>
+		</transition>
+		<transition>
+			<source ref="id60"/>
+			<target ref="id62"/>
+			<label kind="synchronisation" x="-289" y="8">pumpOff?</label>
+			<nail x="-204" y="17"/>
+			<nail x="-238" y="34"/>
+		</transition>
+		<transition>
+			<source ref="id61"/>
+			<target ref="id62"/>
+			<label kind="synchronisation" x="-289" y="34">pumpOff?</label>
+			<nail x="-204" y="51"/>
+			<nail x="-238" y="34"/>
+		</transition>
+	</template>
+	<template>
+		<name>requestHandler</name>
+		<declaration>clock x;</declaration>
+		<location id="id63" x="-153" y="0">
+		</location>
+		<location id="id64" x="136" y="-408">
+			<name x="34" y="-442">pushLeftQueueSecondary</name>
+			<committed/>
+		</location>
+		<location id="id65" x="136" y="-136">
+			<name x="51" y="-161">pushRightQueueSecondary</name>
+			<committed/>
+		</location>
+		<location id="id66" x="136" y="-272">
+			<name x="136" y="-306">pushRightQueue</name>
+			<label kind="invariant" x="110" y="-255">x &lt;= 15</label>
+		</location>
+		<location id="id67" x="272" y="0">
+			<name x="280" y="-25">signalToStart</name>
+		</location>
+		<location id="id68" x="136" y="0">
+			<name x="144" y="-34">pushLeftQueue</name>
+			<label kind="invariant" x="110" y="17">x &lt;= 15</label>
+		</location>
+		<location id="id69" x="0" y="0">
+			<name x="-42" y="-8">idle</name>
+		</location>
+		<init ref="id63"/>
+		<transition>
+			<source ref="id63"/>
+			<target ref="id69"/>
+		</transition>
+		<transition>
+			<source ref="id64"/>
+			<target ref="id67"/>
+			<label kind="synchronisation" x="221" y="-408">start!</label>
+			<nail x="272" y="-408"/>
+		</transition>
+		<transition>
+			<source ref="id66"/>
+			<target ref="id64"/>
+			<label kind="guard" x="136" y="-357">x &lt;= 15</label>
+			<label kind="synchronisation" x="136" y="-340">request[0]!</label>
+		</transition>
+		<transition>
+			<source ref="id65"/>
+			<target ref="id67"/>
+			<label kind="synchronisation" x="221" y="-136">start!</label>
+			<nail x="272" y="-136"/>
+		</transition>
+		<transition>
+			<source ref="id68"/>
+			<target ref="id65"/>
+			<label kind="guard" x="144" y="-93">x &lt;= 15</label>
+			<label kind="synchronisation" x="144" y="-76">request[1]!</label>
+		</transition>
+		<transition>
+			<source ref="id66"/>
+			<target ref="id67"/>
+			<label kind="guard" x="204" y="-272">x &gt;= 15</label>
+			<label kind="synchronisation" x="212" y="-255">start!</label>
+			<nail x="272" y="-272"/>
+		</transition>
+		<transition>
+			<source ref="id69"/>
+			<target ref="id66"/>
+			<label kind="synchronisation" x="8" y="-255">request[1]!</label>
+			<label kind="assignment" x="18" y="-272">x = 0</label>
+			<nail x="0" y="-272"/>
+		</transition>
+		<transition>
+			<source ref="id67"/>
+			<target ref="id69"/>
+			<label kind="synchronisation" x="18" y="85">done?</label>
+			<label kind="assignment" x="18" y="102">x=0</label>
+			<nail x="272" y="102"/>
+			<nail x="0" y="102"/>
+		</transition>
+		<transition>
+			<source ref="id68"/>
+			<target ref="id67"/>
+			<label kind="guard" x="187" y="0">x &gt;= 15</label>
+			<label kind="synchronisation" x="195" y="17">start!</label>
+		</transition>
+		<transition>
+			<source ref="id69"/>
+			<target ref="id68"/>
+			<label kind="synchronisation" x="25" y="17">request[0]!</label>
+			<label kind="assignment" x="34" y="0">x = 0</label>
+		</transition>
+	</template>
+	<template>
+		<name>queue</name>
+		<location id="id70" x="0" y="0">
+			<name x="17" y="-17">addQueue</name>
+		</location>
+		<init ref="id70"/>
+		<transition>
+			<source ref="id70"/>
+			<target ref="id70"/>
+			<label kind="synchronisation" x="-34" y="-110">request[0]?</label>
+			<label kind="assignment" x="-25" y="-93">push(0)</label>
+			<nail x="34" y="-68"/>
+			<nail x="-34" y="-68"/>
+		</transition>
+		<transition>
+			<source ref="id70"/>
+			<target ref="id70"/>
+			<label kind="synchronisation" x="-34" y="85">request[1]?</label>
+			<label kind="assignment" x="-25" y="68">push(1)</label>
+			<nail x="34" y="68"/>
+			<nail x="-34" y="68"/>
+		</transition>
+	</template>
+	<template>
+		<name>boat</name>
+		<declaration>clock x;</declaration>
+		<location id="id71" x="0" y="0">
+		</location>
+		<init ref="id71"/>
+		<transition>
+			<source ref="id71"/>
+			<target ref="id71"/>
+			<label kind="guard" x="76" y="-34">x&gt;=2</label>
+			<label kind="synchronisation" x="76" y="0">arrival!</label>
+			<label kind="assignment" x="76" y="-17">x:=0</label>
+			<nail x="68" y="68"/>
+			<nail x="68" y="-68"/>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">schip</name>
+		<declaration>// Place local declarations here.
+
+//id_s current=1;
+
+/*void hoogop()
+{
+    current%=10;
+    current++;
+}
+*/
+clock x;</declaration>
+		<location id="id72" x="0" y="0">
+			<name x="-10" y="-34">idle</name>
+		</location>
+		<init ref="id72"/>
+		<transition>
+			<source ref="id72"/>
+			<target ref="id72"/>
+			<label kind="select" x="18" y="-85">i:id_s</label>
+			<label kind="guard" x="102" y="-34">x&gt;=10</label>
+			<label kind="synchronisation" x="102" y="-17">arrive!</label>
+			<label kind="assignment" x="102" y="17">x:=0</label>
+			<nail x="68" y="-68"/>
+			<nail x="68" y="68"/>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+
+// List one or more processes to be composed into a system.
+system MainNew, queue, requestHandler, pump, leftGate, rightGate;
+
+    </system>
+	<queries>
+		<query>
+			<formula>A[] not deadlock
+			</formula>
+			<comment>
+			</comment>
+		</query>
+	</queries>
+</nta>
