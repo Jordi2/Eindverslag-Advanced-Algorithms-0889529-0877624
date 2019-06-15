@@ -108,10 +108,34 @@ De sluis is een schutsluis wat betekent dat deze in staat is om boten van de een
 
 \subsection{Ctl formules} \label{sec:ctl-formules}
 
+\subsubsection{De computation tree}
+
+De computatie boom is een model om tijdsgebonden logica te modelleren. \\\\
+In dit model bestaan de volgende temporale operatoren:
+\begin{itemize}
+    \item A Always
+    \item E Exists
+    \item F Eventually
+    \item G Globally
+    \item X Next
+\end{itemize}
+Deze operatoren kunnen worden gecombineerd voor verschillende doeleinden.
+
 \subsubsection{Deadlock}
 
+Deadlocks staat beschreven onder '\nameref{deadlock}' op pagina \pageref{deadlock}.\\
 
+\noindent Om de controleren of er geen deadlocks kunnen ontstaan in het model moeten wordt de volgende formule gebruikt: \\
 
+A[] not deadlock \\
+ 
+\noindent Met deze formule wordt gevraag of er 'A' always/altijd geen deadlock kan onstaan.
+
+\subsubsection{Liveness}
+
+Livness staat beschreven onder '\nameref{liveness}' op pagina \pageref{liveness}.\\
+
+\noindent Om de garantie voor liveness te controleren wordt de volgende formule gebruikt: \\
 
 
 \subsection{Requirements / Functionaliteiten-lijst}\label{sec:FuncList}
