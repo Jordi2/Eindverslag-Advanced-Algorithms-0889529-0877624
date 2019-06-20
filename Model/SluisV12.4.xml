@@ -630,13 +630,13 @@ system Main, queue, gate, signalLight, requestHandler, pump;
 			</comment>
 		</query>
 		<query>
-			<formula>Main.startUp--&gt; Main.pumpEmpty
+			<formula>Main.startUp --&gt; Main.pumpEmpty
 			</formula>
 			<comment>
 			</comment>
 		</query>
 		<query>
-			<formula>Main.startUp--&gt; Main.pumpFill
+			<formula>Main.startUp --&gt; Main.pumpFill
 			</formula>
 			<comment>
 			</comment>
